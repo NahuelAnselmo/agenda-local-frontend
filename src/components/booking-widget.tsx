@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   formatPrice,
   timeSlots,
@@ -73,6 +74,7 @@ export function BookingWidget({
   const [availableTimes, setAvailableTimes] = useState(timeSlots);
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
+  const [confirmationToken, setConfirmationToken] = useState("");
 
   const currentStep = stepOrder.indexOf(step);
   const availableProfessionals = professionalOptions.filter((professional) =>
@@ -161,6 +163,10 @@ export function BookingWidget({
       );
 
       if (!response.ok) throw new Error("No se pudo crear la reserva");
+      const payload = (await response.json()) as {
+        data: { cancelToken: string };
+      };
+      setConfirmationToken(payload.data.cancelToken);
       setStatus("success");
     } catch {
       setStatus("error");
@@ -176,8 +182,8 @@ export function BookingWidget({
         <p className="eyebrow">Reserva confirmada</p>
         <h2>¡Nos vemos pronto!</h2>
         <p className="success-copy">
-          Te enviamos los detalles de tu turno por email. También podés
-          reprogramarlo desde el enlace de confirmación.
+          Tu turno quedó guardado. Desde el comprobante podés revisar todos los
+          datos o cancelarlo si cambia tu agenda.
         </p>
         <div className="confirmation-summary">
           <span>{selectedService.name}</span>
@@ -186,8 +192,14 @@ export function BookingWidget({
             {selectedTime}
           </strong>
         </div>
+        <Link
+          className="button button-dark full-width"
+          href={"/reserva/" + confirmationToken}
+        >
+          Ver comprobante
+        </Link>
         <button
-          className="button button-primary"
+          className="button success-secondary"
           type="button"
           onClick={() => {
             setStatus("idle");
