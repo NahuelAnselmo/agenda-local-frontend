@@ -2,11 +2,9 @@
 
 import { FormEvent, useMemo, useState } from "react";
 import {
-  business,
   formatPrice,
-  professionals,
-  services,
   timeSlots,
+  type Business,
   type Professional,
   type Service,
 } from "@/data/demo-business";
@@ -54,18 +52,30 @@ function createDays(): DayOption[] {
   });
 }
 
-export function BookingWidget() {
+export function BookingWidget({
+  businessData,
+  serviceOptions,
+  professionalOptions,
+}: {
+  businessData: Business;
+  serviceOptions: Service[];
+  professionalOptions: Professional[];
+}) {
   const days = useMemo(() => createDays(), []);
   const [step, setStep] = useState<Step>("service");
-  const [selectedService, setSelectedService] = useState<Service>(services[0]);
+  const [selectedService, setSelectedService] = useState<Service>(
+    serviceOptions[0],
+  );
   const [selectedProfessional, setSelectedProfessional] =
     useState<Professional | null>(null);
   const [selectedDay, setSelectedDay] = useState(days[1]);
   const [selectedTime, setSelectedTime] = useState("10:30");
+  const [availableTimes, setAvailableTimes] = useState(timeSlots);
+  const [loadingTimes, setLoadingTimes] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
 
   const currentStep = stepOrder.indexOf(step);
-  const availableProfessionals = professionals.filter((professional) =>
+  const availableProfessionals = professionalOptions.filter((professional) =>
     professional.serviceIds.includes(selectedService.id),
   );
 
@@ -78,6 +88,48 @@ export function BookingWidget() {
   function chooseProfessional(professional: Professional | null) {
     setSelectedProfessional(professional);
     setStep("schedule");
+    void loadAvailability(professional, selectedDay);
+  }
+
+  async function loadAvailability(
+    professional: Professional | null,
+    day: DayOption,
+  ) {
+    setLoadingTimes(true);
+    const apiUrl =
+      process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+    const query = new URLSearchParams({
+      serviceId: selectedService.id,
+      date: day.value,
+    });
+    if (professional) query.set("staffId", professional.id);
+
+    try {
+      const response = await fetch(
+        apiUrl +
+          "/businesses/" +
+          businessData.slug +
+          "/availability?" +
+          query.toString(),
+      );
+      if (!response.ok) throw new Error("No se pudo consultar disponibilidad");
+      const payload = (await response.json()) as {
+        data: { slots: string[] };
+      };
+      setAvailableTimes(payload.data.slots);
+      if (!payload.data.slots.includes(selectedTime)) {
+        setSelectedTime(payload.data.slots[0] ?? "");
+      }
+    } catch {
+      setAvailableTimes(timeSlots);
+    } finally {
+      setLoadingTimes(false);
+    }
+  }
+
+  function chooseDay(day: DayOption) {
+    setSelectedDay(day);
+    void loadAvailability(selectedProfessional, day);
   }
 
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
@@ -90,7 +142,7 @@ export function BookingWidget() {
 
     try {
       const response = await fetch(
-        apiUrl + "/businesses/" + business.slug + "/appointments",
+        apiUrl + "/businesses/" + businessData.slug + "/appointments",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -178,7 +230,7 @@ export function BookingWidget() {
             <p>El precio y la duración se muestran antes de reservar.</p>
           </div>
           <div className="service-list">
-            {services.map((service) => (
+            {serviceOptions.map((service) => (
               <button
                 className="service-option"
                 key={service.id}
@@ -259,7 +311,7 @@ export function BookingWidget() {
                 key={day.value}
                 type="button"
                 className={day.value === selectedDay.value ? "selected" : ""}
-                onClick={() => setSelectedDay(day)}
+                onClick={() => chooseDay(day)}
                 aria-pressed={day.value === selectedDay.value}
               >
                 <small>{day.weekday}</small>
@@ -269,7 +321,11 @@ export function BookingWidget() {
             ))}
           </div>
           <div className="time-grid" aria-label="Horarios disponibles">
-            {timeSlots.map((time) => (
+            {loadingTimes && <span className="time-loading">Buscando…</span>}
+            {!loadingTimes && availableTimes.length === 0 && (
+              <span className="time-empty">No hay horarios para este día.</span>
+            )}
+            {!loadingTimes && availableTimes.map((time) => (
               <button
                 key={time}
                 type="button"
@@ -285,6 +341,7 @@ export function BookingWidget() {
             className="button button-primary full-width"
             type="button"
             onClick={() => setStep("details")}
+            disabled={!selectedTime || loadingTimes}
           >
             Continuar con este horario
           </button>

@@ -1,5 +1,6 @@
 import { BookingWidget } from "@/components/booking-widget";
-import { business, formatPrice, services } from "@/data/demo-business";
+import { formatPrice } from "@/data/demo-business";
+import { getPublicBusiness } from "@/lib/public-business";
 
 const benefits = [
   ["01", "Elegí tu servicio", "Precios y duración siempre claros."],
@@ -7,7 +8,9 @@ const benefits = [
   ["03", "Confirmá en segundos", "Sin llamadas ni esperas innecesarias."],
 ];
 
-export default function Home() {
+export default async function Home() {
+  const { business, services, professionals } = await getPublicBusiness();
+
   return (
     <main>
       <header className="site-header">
@@ -115,7 +118,11 @@ export default function Home() {
             <li><span>✓</span> Tus datos siempre protegidos</li>
           </ul>
         </div>
-        <BookingWidget />
+        <BookingWidget
+          businessData={business}
+          serviceOptions={services}
+          professionalOptions={professionals}
+        />
       </section>
 
       <section className="location-section" id="ubicacion">

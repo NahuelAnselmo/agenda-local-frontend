@@ -157,6 +157,7 @@ button { color: inherit; }
 .day-picker button.selected span { color: rgba(255,255,255,.65); }
 .time-grid { margin: 5px 0 24px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 .time-grid button { min-height: 42px; border: 1px solid var(--line); border-radius: 5px; background: white; cursor: pointer; font-size: 11px; font-weight: 800; }
+.time-loading, .time-empty { grid-column: 1 / -1; padding: 30px 10px; color: var(--muted); font-size: 10px; text-align: center; }
 .details-layout { display: grid; grid-template-columns: 1.25fr .75fr; gap: 28px; }
 .booking-form { display: grid; gap: 14px; }
 .booking-form label { display: grid; gap: 7px; color: #4d5753; font-size: 10px; font-weight: 800; }

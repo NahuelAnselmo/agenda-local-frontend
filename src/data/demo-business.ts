@@ -16,7 +16,20 @@ export type Professional = {
   serviceIds: string[];
 };
 
-export const business = {
+export type Business = {
+  id: string;
+  slug: string;
+  name: string;
+  category: string;
+  location: string;
+  address: string;
+  rating: number;
+  reviews: number;
+  phone: string;
+  schedule: string;
+};
+
+export const business: Business = {
   id: "norte-studio",
   slug: "norte-studio",
   name: "Norte Studio",
@@ -27,7 +40,7 @@ export const business = {
   reviews: 128,
   phone: "+54 11 5555-0194",
   schedule: "Lun a sáb · 9:00 a 20:00",
-} as const;
+};
 
 export const services: Service[] = [
   {
