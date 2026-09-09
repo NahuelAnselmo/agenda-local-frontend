@@ -3,7 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 
-type View = "overview" | "appointments" | "services" | "staff";
+type View = "overview" | "appointments" | "services" | "staff" | "availability";
 type Status = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
 
 type Service = {
@@ -46,6 +46,12 @@ type DashboardData = {
   appointments: Appointment[];
   services: Service[];
   staff: Staff[];
+  availability: Array<{
+    id: string;
+    weekday: number;
+    startTime: string;
+    endTime: string;
+  }>;
 };
 
 const apiUrl =
@@ -56,6 +62,17 @@ const navItems: { id: View; label: string; icon: string }[] = [
   { id: "appointments", label: "Agenda", icon: "□" },
   { id: "services", label: "Servicios", icon: "✦" },
   { id: "staff", label: "Equipo", icon: "◎" },
+  { id: "availability", label: "Horarios", icon: "◷" },
+];
+
+const weekdays = [
+  { value: 1, label: "Lunes" },
+  { value: 2, label: "Martes" },
+  { value: 3, label: "Miércoles" },
+  { value: 4, label: "Jueves" },
+  { value: 5, label: "Viernes" },
+  { value: 6, label: "Sábado" },
+  { value: 0, label: "Domingo" },
 ];
 
 const statusLabels: Record<Status, string> = {
@@ -214,6 +231,25 @@ export function AdminDashboard() {
       body: JSON.stringify({ active: !member.active }),
     });
     setMessage(member.active ? "Profesional pausado" : "Profesional activado");
+    await loadDashboard();
+  }
+
+  async function updateAvailability(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const intervals = weekdays
+      .filter((day) => formData.get("enabled-" + day.value) === "on")
+      .map((day) => ({
+        weekday: day.value,
+        startTime: String(formData.get("start-" + day.value)),
+        endTime: String(formData.get("end-" + day.value)),
+      }));
+
+    await apiRequest("/admin/availability", {
+      method: "PUT",
+      body: JSON.stringify({ intervals }),
+    });
+    setMessage("Horarios de atención actualizados");
     await loadDashboard();
   }
 
@@ -417,6 +453,64 @@ export function AdminDashboard() {
                 </article>
               ))}
             </div>
+          </section>
+        )}
+
+        {view === "availability" && (
+          <section className="admin-card">
+            <div className="admin-card-heading">
+              <div>
+                <p className="eyebrow">Disponibilidad</p>
+                <h2>Horarios de atención</h2>
+              </div>
+              <span className="count-pill">Zona horaria Buenos Aires</span>
+            </div>
+            <form className="availability-form" onSubmit={updateAvailability}>
+              {weekdays.map((day) => {
+                const dayIntervals = data.availability.filter(
+                  (interval) => interval.weekday === day.value,
+                );
+                return (
+                  <div className="availability-row" key={day.value}>
+                    <label className="day-toggle">
+                      <input
+                        type="checkbox"
+                        name={"enabled-" + day.value}
+                        defaultChecked={dayIntervals.length > 0}
+                      />
+                      <span>{day.label}</span>
+                    </label>
+                    <label>
+                      <span>Apertura</span>
+                      <input
+                        type="time"
+                        name={"start-" + day.value}
+                        defaultValue={dayIntervals[0]?.startTime ?? "09:00"}
+                      />
+                    </label>
+                    <label>
+                      <span>Cierre</span>
+                      <input
+                        type="time"
+                        name={"end-" + day.value}
+                        defaultValue={
+                          dayIntervals[dayIntervals.length - 1]?.endTime ?? "20:00"
+                        }
+                      />
+                    </label>
+                  </div>
+                );
+              })}
+              <div className="availability-footer">
+                <p>
+                  Los horarios disponibles se recalculan automáticamente según
+                  la duración de cada servicio y los turnos ya reservados.
+                </p>
+                <button className="button button-primary" type="submit">
+                  Guardar horarios
+                </button>
+              </div>
+            </form>
           </section>
         )}
       </section>
