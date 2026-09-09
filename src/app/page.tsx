@@ -19,6 +19,7 @@ export default function Home() {
           <a href="#servicios">Servicios</a>
           <a href="#equipo">Equipo</a>
           <a href="#ubicacion">Ubicación</a>
+          <a href="/admin">Administración</a>
         </nav>
         <a className="button button-small button-dark" href="#reservar">
           Reservar turno

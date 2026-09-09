@@ -6,6 +6,13 @@ marca ficticia **Norte Studio** y consume la API independiente ubicada en
 
 Tecnologías: Next.js 16, React 19, TypeScript y Tailwind CSS 4.
 
+## Panel de demostración
+
+La administración está disponible en `/admin`.
+
+- Email: admin@nortestudio.demo
+- Contraseña: Demo1234!
+
 ## Getting Started
 
 First, run the development server:
