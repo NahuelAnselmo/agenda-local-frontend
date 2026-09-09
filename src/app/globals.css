@@ -288,8 +288,9 @@ button { color: inherit; }
 .login-card form { padding: 70px 60px; display: flex; flex-direction: column; justify-content: center; }
 .login-card h1 { margin: 0; font-family: var(--font-cormorant); font-size: 46px; line-height: 1; }
 .login-card form > p:not(.eyebrow, .form-error) { margin: 15px 0 32px; color: var(--muted); font-size: 12px; line-height: 1.6; }
-.login-card label, .new-service-form label { margin-bottom: 16px; display: grid; gap: 8px; color: #4c5652; font-size: 10px; font-weight: 800; }
-.login-card input, .new-service-form input { min-height: 46px; padding: 0 13px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); }
+.login-card label, .new-service-form label, .staff-form label { margin-bottom: 16px; display: grid; gap: 8px; color: #4c5652; font-size: 10px; font-weight: 800; }
+.login-card input, .new-service-form input, .staff-form input:not([type="checkbox"]), .staff-form textarea { min-height: 46px; padding: 0 13px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); }
+.staff-form textarea { padding-top: 12px; resize: vertical; font: inherit; }
 .login-card .form-error { margin: 14px 0 0; }
 .demo-hint { margin-top: 18px; color: #89908d; font-size: 9px; line-height: 1.5; text-align: center; }
 
@@ -367,11 +368,21 @@ button { color: inherit; }
 .large-avatar { width: 68px; height: 68px; display: grid; place-items: center; border-radius: 50%; font-family: var(--font-cormorant); font-size: 23px; font-weight: 700; }
 .staff-management h3 { margin-top: 16px; }
 .service-count { margin: 18px 0; color: var(--muted); font-size: 8px; }
-.staff-management .outline-action { width: 100%; margin-top: auto; }
+.staff-management .outline-action { width: 100%; margin-top: 8px; }
 .new-service-form { margin: -5px 0 25px; padding: 20px; display: grid; grid-template-columns: 1.2fr .6fr .6fr; gap: 13px; align-items: end; border-radius: 6px; background: #efede6; }
 .new-service-form label { margin: 0; }
 .new-service-form .wide-field { grid-column: 1 / 3; }
 .new-service-form button { min-height: 46px; }
+.staff-form { margin: -5px 0 25px; padding: 20px; display: grid; gap: 18px; border-radius: 6px; background: #efede6; text-align: left; }
+.staff-management .staff-form { width: calc(100% + 44px); margin: 18px -22px -22px; border-radius: 0 0 6px 6px; }
+.staff-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 0 12px; }
+.staff-fields .wide-field { grid-column: 1 / -1; }
+.staff-form fieldset { min-width: 0; margin: 0; padding: 0; border: 0; }
+.staff-form legend { margin-bottom: 10px; color: #4c5652; font-size: 10px; font-weight: 800; }
+.staff-service-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.staff-service-options label { margin: 0; padding: 8px 10px; display: flex; align-items: center; flex-direction: row; border: 1px solid var(--line); border-radius: 99px; background: white; cursor: pointer; }
+.staff-service-options input { width: 14px; height: 14px; accent-color: var(--terracotta); }
+.staff-form > .button { justify-self: start; min-height: 42px; }
 .availability-form { border-top: 1px solid var(--line); }
 .availability-row { min-height: 72px; display: grid; grid-template-columns: 1fr 150px 150px; align-items: center; gap: 22px; border-bottom: 1px solid var(--line); }
 .availability-row label { display: grid; gap: 6px; color: var(--muted); font-size: 8px; font-weight: 700; }
@@ -414,6 +425,8 @@ button { color: inherit; }
   .management-grid { grid-template-columns: 1fr; }
   .new-service-form { grid-template-columns: 1fr; }
   .new-service-form .wide-field { grid-column: auto; }
+  .staff-fields { grid-template-columns: 1fr; }
+  .staff-fields .wide-field { grid-column: auto; }
   .availability-row { padding: 14px 0; grid-template-columns: 1fr 105px 105px; gap: 8px; }
   .availability-footer { align-items: stretch; flex-direction: column; }
 }

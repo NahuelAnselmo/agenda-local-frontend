@@ -19,6 +19,7 @@ type Staff = {
   id: string;
   displayName: string;
   roleTitle: string | null;
+  bio: string | null;
   initials: string | null;
   accent: string | null;
   active: boolean;
@@ -131,6 +132,8 @@ export function AdminDashboard() {
   );
   const [message, setMessage] = useState("");
   const [showNewService, setShowNewService] = useState(false);
+  const [showNewStaff, setShowNewStaff] = useState(false);
+  const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
 
   async function loadDashboard() {
     try {
@@ -248,6 +251,47 @@ export function AdminDashboard() {
       body: JSON.stringify({ active: !member.active }),
     });
     setMessage(member.active ? "Profesional pausado" : "Profesional activado");
+    await loadDashboard();
+  }
+
+  async function createStaff(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+
+    await apiRequest("/admin/staff", {
+      method: "POST",
+      body: JSON.stringify({
+        displayName: formData.get("displayName"),
+        roleTitle: formData.get("roleTitle"),
+        bio: formData.get("bio"),
+        serviceIds: formData.getAll("serviceIds").map(String),
+      }),
+    });
+    form.reset();
+    setShowNewStaff(false);
+    setMessage("Profesional agregado correctamente");
+    await loadDashboard();
+  }
+
+  async function updateStaff(
+    event: FormEvent<HTMLFormElement>,
+    member: Staff,
+  ) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    await apiRequest("/admin/staff/" + member.id, {
+      method: "PATCH",
+      body: JSON.stringify({
+        displayName: formData.get("displayName"),
+        roleTitle: formData.get("roleTitle"),
+        bio: formData.get("bio"),
+        serviceIds: formData.getAll("serviceIds").map(String),
+      }),
+    });
+    setEditingStaffId(null);
+    setMessage("Datos del profesional actualizados");
     await loadDashboard();
   }
 
@@ -479,18 +523,59 @@ export function AdminDashboard() {
           <section className="admin-card">
             <div className="admin-card-heading">
               <div><p className="eyebrow">Equipo</p><h2>Profesionales</h2></div>
-              <span className="count-pill">{data.staff.length} personas</span>
+              <button
+                className="button button-dark button-small"
+                type="button"
+                onClick={() => setShowNewStaff(!showNewStaff)}
+              >
+                {showNewStaff ? "Cerrar" : "+ Nuevo profesional"}
+              </button>
             </div>
+            {showNewStaff && (
+              <StaffForm
+                services={data.services}
+                onSubmit={createStaff}
+                submitLabel="Agregar profesional"
+              />
+            )}
             <div className="management-grid staff-management">
               {data.staff.map((member) => (
                 <article className={"management-card " + (!member.active ? "inactive" : "")} key={member.id}>
                   <div className={"large-avatar avatar-" + member.accent}>{member.initials}</div>
                   <h3>{member.displayName}</h3>
                   <p>{member.roleTitle}</p>
-                  <span className="service-count">{member.services.length} servicios asignados</span>
+                  <span className="service-count">
+                    {member.services.length === 0
+                      ? "Sin servicios asignados"
+                      : member.services
+                          .map(({ serviceId }) =>
+                            data.services.find((service) => service.id === serviceId)?.name,
+                          )
+                          .filter(Boolean)
+                          .join(" · ")}
+                  </span>
+                  <button
+                    className="outline-action"
+                    type="button"
+                    onClick={() =>
+                      setEditingStaffId(
+                        editingStaffId === member.id ? null : member.id,
+                      )
+                    }
+                  >
+                    {editingStaffId === member.id ? "Cerrar edición" : "Editar profesional"}
+                  </button>
                   <button className="outline-action" type="button" onClick={() => toggleStaff(member)}>
                     {member.active ? "Pausar agenda" : "Activar agenda"}
                   </button>
+                  {editingStaffId === member.id && (
+                    <StaffForm
+                      member={member}
+                      services={data.services}
+                      onSubmit={(event) => updateStaff(event, member)}
+                      submitLabel="Guardar profesional"
+                    />
+                  )}
                 </article>
               ))}
             </div>
@@ -636,6 +721,74 @@ function NewServiceForm({
       <label>Precio<input name="price" type="number" min="0" placeholder="15000" required /></label>
       <label className="wide-field">Descripción<input name="description" placeholder="Breve descripción para clientes" /></label>
       <button className="button button-primary" type="submit">Crear servicio</button>
+    </form>
+  );
+}
+
+function StaffForm({
+  member,
+  services,
+  onSubmit,
+  submitLabel,
+}: {
+  member?: Staff;
+  services: Service[];
+  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  submitLabel: string;
+}) {
+  const assignedServices = new Set(
+    member?.services.map(({ serviceId }) => serviceId) ?? [],
+  );
+
+  return (
+    <form className="staff-form" onSubmit={onSubmit}>
+      <div className="staff-fields">
+        <label>
+          Nombre
+          <input
+            name="displayName"
+            defaultValue={member?.displayName}
+            placeholder="Ej. Alex Martínez"
+            required
+          />
+        </label>
+        <label>
+          Especialidad
+          <input
+            name="roleTitle"
+            defaultValue={member?.roleTitle ?? ""}
+            placeholder="Ej. Colorista"
+          />
+        </label>
+        <label className="wide-field">
+          Presentación
+          <textarea
+            name="bio"
+            defaultValue={member?.bio ?? ""}
+            placeholder="Experiencia y enfoque profesional"
+            rows={3}
+          />
+        </label>
+      </div>
+      <fieldset>
+        <legend>Servicios que realiza</legend>
+        <div className="staff-service-options">
+          {services.map((service) => (
+            <label key={service.id}>
+              <input
+                type="checkbox"
+                name="serviceIds"
+                value={service.id}
+                defaultChecked={assignedServices.has(service.id)}
+              />
+              <span>{service.name}</span>
+            </label>
+          ))}
+        </div>
+      </fieldset>
+      <button className="button button-primary" type="submit">
+        {submitLabel}
+      </button>
     </form>
   );
 }
