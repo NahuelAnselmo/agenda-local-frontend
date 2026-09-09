@@ -1,69 +1,151 @@
-import Image from "next/image";
+import { BookingWidget } from "@/components/booking-widget";
+import { business, formatPrice, services } from "@/data/demo-business";
+
+const benefits = [
+  ["01", "Elegí tu servicio", "Precios y duración siempre claros."],
+  ["02", "Encontrá tu horario", "Disponibilidad actualizada al instante."],
+  ["03", "Confirmá en segundos", "Sin llamadas ni esperas innecesarias."],
+];
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main>
+      <header className="site-header">
+        <a className="brand" href="#inicio" aria-label="Norte Studio, inicio">
+          <span className="brand-mark" aria-hidden="true">N</span>
+          <span><strong>Norte</strong><small>Studio</small></span>
+        </a>
+        <nav aria-label="Navegación principal">
+          <a href="#servicios">Servicios</a>
+          <a href="#equipo">Equipo</a>
+          <a href="#ubicacion">Ubicación</a>
+        </nav>
+        <a className="button button-small button-dark" href="#reservar">
+          Reservar turno
+        </a>
+      </header>
+
+      <section className="hero" id="inicio">
+        <div className="hero-copy">
+          <p className="eyebrow hero-eyebrow">Barbería contemporánea · Palermo</p>
+          <h1>Tu estilo.<br /><em>Tu momento.</em></h1>
+          <p className="hero-lead">
+            Cortes precisos, atención personalizada y una experiencia diseñada
+            para que salgas sintiéndote mejor.
+          </p>
+          <div className="hero-actions">
+            <a className="button button-primary" href="#reservar">Reservar ahora</a>
+            <a className="text-link" href="#servicios">Ver servicios <span>↘</span></a>
+          </div>
+          <div className="trust-row">
+            <div className="rating-avatars" aria-hidden="true">
+              <span>NR</span><span>CS</span><span>FL</span>
+            </div>
+            <div>
+              <strong><span aria-label="5 estrellas">★★★★★</span> {business.rating}</strong>
+              <small>Más de {business.reviews} clientes nos recomiendan</small>
+            </div>
+          </div>
+        </div>
+
+        <div className="hero-visual" aria-label="Interior de Norte Studio">
+          <div className="visual-frame">
+            <div className="barber-pole" aria-hidden="true"><span /></div>
+            <div className="mirror" aria-hidden="true">
+              <span className="mirror-glow" />
+              <span className="chair"><i /><b /></span>
+            </div>
+            <div className="visual-caption">
+              <span>Abierto hoy</span><strong>9:00 — 20:00</strong>
+            </div>
+          </div>
+          <div className="floating-note">
+            <span aria-hidden="true">✦</span>
+            <div><small>Próximo turno</small><strong>Hoy, 15:30</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <section className="benefit-strip" aria-label="Cómo reservar">
+        {benefits.map(([number, title, copy]) => (
+          <article key={number}>
+            <span>{number}</span>
+            <div><h2>{title}</h2><p>{copy}</p></div>
+          </article>
+        ))}
+      </section>
+
+      <section className="services-section" id="servicios">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Nuestros servicios</p>
+            <h2>Todo lo que necesitás,<br /><em>bien hecho.</em></h2>
+          </div>
+          <p>
+            Trabajamos con técnicas actuales y productos seleccionados para
+            lograr resultados que se sienten propios.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="service-showcase">
+          {services.map((service, index) => (
+            <article key={service.id} className={service.featured ? "featured-service" : ""}>
+              <span className="service-number">0{index + 1}</span>
+              <div><h3>{service.name}</h3><p>{service.description}</p></div>
+              <footer>
+                <span>{service.durationMinutes} min</span>
+                <strong>{formatPrice(service.price)}</strong>
+              </footer>
+            </article>
+          ))}
         </div>
-      </main>
-    </div>
+      </section>
+
+      <section className="booking-section" id="reservar">
+        <div className="booking-intro">
+          <p className="eyebrow">Agenda simple</p>
+          <h2>Tu próximo turno,<br /><em>a pocos clics.</em></h2>
+          <p>
+            Elegí el servicio, la persona y el horario que mejor se adapten a
+            vos. La reserva se confirma en el momento.
+          </p>
+          <ul>
+            <li><span>✓</span> Cancelación y reprogramación online</li>
+            <li><span>✓</span> Recordatorio antes del turno</li>
+            <li><span>✓</span> Tus datos siempre protegidos</li>
+          </ul>
+        </div>
+        <BookingWidget />
+      </section>
+
+      <section className="location-section" id="ubicacion">
+        <div className="location-card">
+          <p className="eyebrow">Encontranos</p>
+          <h2>{business.address}</h2>
+          <p>{business.location}</p>
+          <div><span>{business.schedule}</span><span>{business.phone}</span></div>
+        </div>
+        <div className="map-art" aria-label={"Mapa ilustrativo de " + business.location}>
+          <span className="map-road road-one" />
+          <span className="map-road road-two" />
+          <span className="map-road road-three" />
+          <span className="map-pin">N</span>
+          <small>Palermo</small>
+        </div>
+      </section>
+
+      <footer className="site-footer" id="equipo">
+        <a className="brand footer-brand" href="#inicio">
+          <span className="brand-mark">N</span>
+          <span><strong>Norte</strong><small>Studio</small></span>
+        </a>
+        <p>Una experiencia de cuidado personal hecha a tu medida.</p>
+        <div>
+          <a href="#servicios">Servicios</a>
+          <a href="#reservar">Reservas</a>
+          <a href="mailto:hola@nortestudio.demo">Contacto</a>
+        </div>
+        <small>© {new Date().getFullYear()} Norte Studio · Demo de producto</small>
+      </footer>
+    </main>
   );
 }
