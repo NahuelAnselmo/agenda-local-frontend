@@ -356,6 +356,11 @@ button { color: inherit; }
 .management-card dl { margin: auto 0 17px; display: flex; gap: 25px; }
 .management-card dt { color: var(--muted); font-size: 8px; }
 .management-card dd { margin: 4px 0 0; font-size: 10px; font-weight: 800; }
+.service-quick-edit { margin: auto 0 14px; padding-top: 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 9px; border-top: 1px solid var(--line); }
+.service-quick-edit label { display: grid; gap: 5px; color: var(--muted); font-size: 8px; }
+.service-quick-edit label span { min-height: 34px; padding: 0 8px; display: flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); }
+.service-quick-edit input { min-width: 0; width: 100%; border: 0; outline: 0; background: transparent; font-size: 9px; font-weight: 800; }
+.service-quick-edit button { grid-column: 1 / -1; min-height: 32px; border: 0; border-radius: 4px; background: var(--sage-light); color: #425148; cursor: pointer; font-size: 8px; font-weight: 800; }
 .outline-action { min-height: 37px; border: 1px solid var(--line); border-radius: 4px; background: transparent; cursor: pointer; font-size: 9px; font-weight: 800; }
 .outline-action:hover { border-color: var(--terracotta); color: var(--terracotta); }
 .staff-management .management-card { align-items: center; text-align: center; }

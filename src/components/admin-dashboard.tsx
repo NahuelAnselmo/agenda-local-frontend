@@ -205,6 +205,23 @@ export function AdminDashboard() {
     await loadDashboard();
   }
 
+  async function updateService(
+    event: FormEvent<HTMLFormElement>,
+    service: Service,
+  ) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    await apiRequest("/admin/services/" + service.id, {
+      method: "PATCH",
+      body: JSON.stringify({
+        durationMinutes: Number(formData.get("durationMinutes")),
+        priceInCents: Number(formData.get("price")) * 100,
+      }),
+    });
+    setMessage("Precio y duración actualizados");
+    await loadDashboard();
+  }
+
   async function createService(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -421,10 +438,34 @@ export function AdminDashboard() {
                   </div>
                   <h3>{service.name}</h3>
                   <p>{service.description}</p>
-                  <dl>
-                    <div><dt>Duración</dt><dd>{service.durationMinutes} min</dd></div>
-                    <div><dt>Precio</dt><dd>{money(service.priceInCents)}</dd></div>
-                  </dl>
+                  <form
+                    className="service-quick-edit"
+                    onSubmit={(event) => void updateService(event, service)}
+                  >
+                    <label>
+                      Duración
+                      <span>
+                        <input
+                          name="durationMinutes"
+                          type="number"
+                          min="10"
+                          defaultValue={service.durationMinutes}
+                        /> min
+                      </span>
+                    </label>
+                    <label>
+                      Precio
+                      <span>
+                        $ <input
+                          name="price"
+                          type="number"
+                          min="0"
+                          defaultValue={service.priceInCents / 100}
+                        />
+                      </span>
+                    </label>
+                    <button type="submit">Guardar cambios</button>
+                  </form>
                   <button className="outline-action" type="button" onClick={() => toggleService(service)}>
                     {service.active ? "Pausar publicación" : "Volver a publicar"}
                   </button>
