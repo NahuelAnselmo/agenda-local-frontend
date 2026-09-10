@@ -157,6 +157,14 @@ export function AdminDashboard() {
   const [agendaAppointments, setAgendaAppointments] = useState<Appointment[] | null>(
     null,
   );
+  const [appointmentFilters, setAppointmentFilters] = useState({
+    q: "",
+    status: "",
+    staffId: "",
+  });
+  const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(
+    null,
+  );
 
   async function loadDashboard() {
     try {
@@ -223,15 +231,16 @@ export function AdminDashboard() {
     if (view === "appointments") await loadAppointments();
   }
 
-  async function loadAppointments(filters?: {
+  async function loadAppointments(filters = appointmentFilters) {
+    const activeFilters: {
     q?: string;
     status?: string;
     staffId?: string;
-  }) {
+    } = filters;
     const query = new URLSearchParams();
-    if (filters?.q) query.set("q", filters.q);
-    if (filters?.status) query.set("status", filters.status);
-    if (filters?.staffId) query.set("staffId", filters.staffId);
+    if (activeFilters.q) query.set("q", activeFilters.q);
+    if (activeFilters.status) query.set("status", activeFilters.status);
+    if (activeFilters.staffId) query.set("staffId", activeFilters.staffId);
     const suffix = query.size > 0 ? "?" + query.toString() : "";
     const response = (await apiRequest("/admin/appointments" + suffix)) as {
       data: Appointment[];
@@ -242,12 +251,15 @@ export function AdminDashboard() {
   async function filterAppointments(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const nextFilters = {
+      q: String(formData.get("q") ?? "").trim(),
+      status: String(formData.get("status") ?? ""),
+      staffId: String(formData.get("staffId") ?? ""),
+    };
     try {
-      await loadAppointments({
-        q: String(formData.get("q") ?? "").trim(),
-        status: String(formData.get("status") ?? ""),
-        staffId: String(formData.get("staffId") ?? ""),
-      });
+      setEditingAppointmentId(null);
+      setAppointmentFilters(nextFilters);
+      await loadAppointments(nextFilters);
     } catch (error) {
       setMessage(
         error instanceof Error ? error.message : "No se pudo filtrar la agenda",
@@ -263,6 +275,36 @@ export function AdminDashboard() {
           error instanceof Error ? error.message : "No se pudo cargar la agenda",
         );
       });
+    }
+  }
+
+  async function rescheduleAppointment(
+    event: FormEvent<HTMLFormElement>,
+    appointment: Appointment,
+  ) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    try {
+      await apiRequest("/admin/appointments/" + appointment.id, {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: "CONFIRMED",
+          schedule: {
+            serviceId: formData.get("serviceId"),
+            staffId: formData.get("staffId"),
+            date: formData.get("date"),
+            time: formData.get("time"),
+          },
+        }),
+      });
+      setEditingAppointmentId(null);
+      setMessage("Turno reprogramado correctamente");
+      await Promise.all([loadDashboard(), loadAppointments()]);
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo reprogramar el turno",
+      );
     }
   }
 
@@ -577,10 +619,28 @@ export function AdminDashboard() {
                 Aplicar filtros
               </button>
             </form>
+            {editingAppointmentId && (
+              <RescheduleForm
+                appointment={
+                  (agendaAppointments ?? data.appointments).find(
+                    ({ id }) => id === editingAppointmentId,
+                  )!
+                }
+                services={data.services}
+                staff={data.staff}
+                onSubmit={rescheduleAppointment}
+                onCancel={() => setEditingAppointmentId(null)}
+              />
+            )}
             <AppointmentList
               appointments={agendaAppointments ?? data.appointments}
               onUpdate={updateAppointment}
               businessName={data.business.name}
+              onEdit={(appointment) =>
+                setEditingAppointmentId(
+                  editingAppointmentId === appointment.id ? null : appointment.id,
+                )
+              }
             />
           </section>
         )}
@@ -869,10 +929,12 @@ function AppointmentList({
   appointments,
   onUpdate,
   businessName,
+  onEdit,
 }: {
   appointments: Appointment[];
   onUpdate: (id: string, status: Status) => Promise<void>;
   businessName: string;
+  onEdit?: (appointment: Appointment) => void;
 }) {
   if (appointments.length === 0) {
     return <p className="empty-state">No hay turnos próximos.</p>;
@@ -917,6 +979,11 @@ function AppointmentList({
             >
               WhatsApp ↗
             </a>
+            {onEdit && (
+              <button type="button" onClick={() => onEdit(appointment)}>
+                Reprogramar
+              </button>
+            )}
           </div>
         </article>
       ))}
@@ -937,6 +1004,109 @@ function whatsappUrl(appointment: Appointment, businessName: string) {
   ].join(" ");
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+}
+
+function RescheduleForm({
+  appointment,
+  services,
+  staff,
+  onSubmit,
+  onCancel,
+}: {
+  appointment: Appointment;
+  services: Service[];
+  staff: Staff[];
+  onSubmit: (
+    event: FormEvent<HTMLFormElement>,
+    appointment: Appointment,
+  ) => Promise<void>;
+  onCancel: () => void;
+}) {
+  const [serviceId, setServiceId] = useState(appointment.service.id);
+  const eligibleStaff = staff.filter(
+    (member) =>
+      member.active &&
+      member.services.some((service) => service.serviceId === serviceId),
+  );
+  const currentStaffIsEligible = eligibleStaff.some(
+    (member) => member.id === appointment.staff.id,
+  );
+  const localDateTime = appointmentLocalDateTime(appointment.startAt);
+
+  return (
+    <section className="reschedule-panel" aria-labelledby="reschedule-title">
+      <div>
+        <p className="eyebrow">Editar turno</p>
+        <h3 id="reschedule-title">Reprogramar a {appointment.customerName}</h3>
+      </div>
+      <form onSubmit={(event) => onSubmit(event, appointment)}>
+        <label>
+          Servicio
+          <select
+            name="serviceId"
+            value={serviceId}
+            onChange={(event) => setServiceId(event.target.value)}
+          >
+            {services.filter((service) => service.active).map((service) => (
+              <option value={service.id} key={service.id}>{service.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Profesional
+          <select
+            key={serviceId}
+            name="staffId"
+            defaultValue={
+              currentStaffIsEligible
+                ? appointment.staff.id
+                : eligibleStaff[0]?.id
+            }
+            required
+          >
+            {eligibleStaff.map((member) => (
+              <option value={member.id} key={member.id}>{member.displayName}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Fecha
+          <input name="date" type="date" defaultValue={localDateTime.date} required />
+        </label>
+        <label>
+          Hora
+          <input name="time" type="time" step="1800" defaultValue={localDateTime.time} required />
+        </label>
+        <div className="reschedule-actions">
+          <button className="outline-action" type="button" onClick={onCancel}>
+            Cancelar edición
+          </button>
+          <button className="button button-primary button-small" type="submit">
+            Confirmar cambio
+          </button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+function appointmentLocalDateTime(value: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Buenos_Aires",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
+  }).formatToParts(new Date(value));
+  const part = (type: Intl.DateTimeFormatPartTypes) =>
+    parts.find((item) => item.type === type)?.value ?? "";
+
+  return {
+    date: `${part("year")}-${part("month")}-${part("day")}`,
+    time: `${part("hour")}:${part("minute")}`,
+  };
 }
 
 function NewServiceForm({

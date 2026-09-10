@@ -346,10 +346,18 @@ button { color: inherit; }
 .appointment-list select { width: 100%; min-height: 34px; padding: 0 7px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); font-size: 8px; }
 .appointment-actions { display: grid; gap: 5px; }
 .appointment-actions a { color: #34785c; font-size: 8px; font-weight: 800; text-align: center; }
+.appointment-actions button { min-height: 25px; padding: 0; border: 0; background: transparent; color: var(--terracotta); cursor: pointer; font-size: 8px; font-weight: 800; }
 .agenda-filters { margin: -6px 0 22px; padding: 15px; display: grid; grid-template-columns: 1.5fr 1fr 1fr auto; align-items: end; gap: 10px; border-radius: 6px; background: #efede6; }
 .agenda-filters label { display: grid; gap: 6px; color: var(--muted); font-size: 8px; font-weight: 800; }
 .agenda-filters input, .agenda-filters select { min-width: 0; min-height: 38px; padding: 0 10px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); font-size: 9px; }
 .agenda-filters .button { min-height: 38px; }
+.reschedule-panel { margin: 0 0 22px; padding: 20px; border: 1px solid #d7c3b6; border-radius: 6px; background: #fff9f4; }
+.reschedule-panel h3 { margin: 0; font-family: var(--font-cormorant); font-size: 24px; }
+.reschedule-panel form { margin-top: 16px; display: grid; grid-template-columns: 1.2fr 1.2fr .8fr .7fr; align-items: end; gap: 10px; }
+.reschedule-panel label { display: grid; gap: 6px; color: var(--muted); font-size: 8px; font-weight: 800; }
+.reschedule-panel input, .reschedule-panel select { min-width: 0; min-height: 40px; padding: 0 9px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); font-size: 9px; }
+.reschedule-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 9px; }
+.reschedule-actions .outline-action { padding: 0 16px; }
 .empty-state { padding: 45px 0; color: var(--muted); font-size: 11px; text-align: center; }
 
 .management-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -408,6 +416,7 @@ button { color: inherit; }
   .appointment-list article { grid-template-columns: 80px 1.1fr 1fr auto; }
   .appointment-actions { grid-column: 2 / -1; width: 150px; margin: -10px 0 13px; }
   .agenda-filters { grid-template-columns: 1fr 1fr; }
+  .reschedule-panel form { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -434,6 +443,8 @@ button { color: inherit; }
   .appointment-service { grid-column: 2 / -1; }
   .appointment-actions { grid-column: 2 / -1; width: 100%; margin: 0; }
   .agenda-filters { grid-template-columns: 1fr; }
+  .reschedule-panel form { grid-template-columns: 1fr; }
+  .reschedule-actions { grid-column: auto; align-items: stretch; flex-direction: column-reverse; }
   .management-grid { grid-template-columns: 1fr; }
   .new-service-form { grid-template-columns: 1fr; }
   .new-service-form .wide-field { grid-column: auto; }
