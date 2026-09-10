@@ -30,6 +30,11 @@ type Staff = {
   initials: string | null;
   accent: string | null;
   active: boolean;
+  archivedAt: string | null;
+  user: {
+    email: string;
+    memberships: { id: string }[];
+  } | null;
   services: { serviceId: string }[];
 };
 
@@ -161,6 +166,7 @@ export function AdminDashboard() {
   const [showNewService, setShowNewService] = useState(false);
   const [showNewStaff, setShowNewStaff] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
+  const [accessStaffId, setAccessStaffId] = useState<string | null>(null);
   const [agendaAppointments, setAgendaAppointments] = useState<Appointment[] | null>(
     null,
   );
@@ -410,6 +416,81 @@ export function AdminDashboard() {
     setEditingStaffId(null);
     setMessage("Datos del profesional actualizados");
     await loadDashboard();
+  }
+
+  async function archiveStaff(member: Staff) {
+    if (
+      !window.confirm(
+        `¿Dar de baja a ${member.displayName}? Sus turnos anteriores se conservarán.`,
+      )
+    ) {
+      return;
+    }
+    try {
+      await apiRequest("/admin/staff/" + member.id, { method: "DELETE" });
+      setEditingStaffId(null);
+      setAccessStaffId(null);
+      setMessage("Profesional archivado y acceso revocado");
+      await loadDashboard();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo archivar al profesional",
+      );
+    }
+  }
+
+  async function restoreStaff(member: Staff) {
+    try {
+      await apiRequest("/admin/staff/" + member.id + "/restore", {
+        method: "POST",
+      });
+      setMessage("Profesional reincorporado al equipo");
+      await loadDashboard();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo restaurar al profesional",
+      );
+    }
+  }
+
+  async function updateStaffAccess(
+    event: FormEvent<HTMLFormElement>,
+    member: Staff,
+  ) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    try {
+      await apiRequest("/admin/staff/" + member.id + "/access", {
+        method: "PUT",
+        body: JSON.stringify({
+          email: formData.get("email"),
+          temporaryPassword: formData.get("temporaryPassword"),
+        }),
+      });
+      setAccessStaffId(null);
+      setMessage("Acceso actualizado. Compartí las credenciales con el profesional");
+      await loadDashboard();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo configurar el acceso",
+      );
+    }
+  }
+
+  async function revokeStaffAccess(member: Staff) {
+    if (!window.confirm(`¿Revocar el acceso de ${member.displayName}?`)) return;
+    try {
+      await apiRequest("/admin/staff/" + member.id + "/access", {
+        method: "DELETE",
+      });
+      setAccessStaffId(null);
+      setMessage("Acceso revocado correctamente");
+      await loadDashboard();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo revocar el acceso",
+      );
+    }
   }
 
   async function updateAvailability(event: FormEvent<HTMLFormElement>) {
@@ -779,7 +860,21 @@ export function AdminDashboard() {
             )}
             <div className="management-grid staff-management">
               {data.staff.map((member) => (
-                <article className={"management-card " + (!member.active ? "inactive" : "")} key={member.id}>
+                <article
+                  className={
+                    "management-card " +
+                    (!member.active ? "inactive " : "") +
+                    (member.archivedAt ? "archived" : "")
+                  }
+                  key={member.id}
+                >
+                  <span className={"staff-state " + (member.archivedAt ? "former" : "")}>
+                    {member.archivedAt
+                      ? "Fuera del equipo"
+                      : member.user?.memberships.length
+                        ? "Acceso habilitado"
+                        : "Sin acceso al panel"}
+                  </span>
                   <div className={"large-avatar avatar-" + member.accent}>{member.initials}</div>
                   <h3>{member.displayName}</h3>
                   <p>{member.roleTitle}</p>
@@ -793,27 +888,72 @@ export function AdminDashboard() {
                           .filter(Boolean)
                           .join(" · ")}
                   </span>
-                  <button
-                    className="outline-action"
-                    type="button"
-                    onClick={() =>
-                      setEditingStaffId(
-                        editingStaffId === member.id ? null : member.id,
-                      )
-                    }
-                  >
-                    {editingStaffId === member.id ? "Cerrar edición" : "Editar profesional"}
-                  </button>
-                  <button className="outline-action" type="button" onClick={() => toggleStaff(member)}>
-                    {member.active ? "Pausar agenda" : "Activar agenda"}
-                  </button>
-                  {editingStaffId === member.id && (
-                    <StaffForm
-                      member={member}
-                      services={data.services}
-                      onSubmit={(event) => updateStaff(event, member)}
-                      submitLabel="Guardar profesional"
-                    />
+                  {member.archivedAt ? (
+                    <button
+                      className="outline-action"
+                      type="button"
+                      onClick={() => void restoreStaff(member)}
+                    >
+                      Reincorporar profesional
+                    </button>
+                  ) : (
+                    <>
+                      <button
+                        className="outline-action"
+                        type="button"
+                        onClick={() =>
+                          setEditingStaffId(
+                            editingStaffId === member.id ? null : member.id,
+                          )
+                        }
+                      >
+                        {editingStaffId === member.id ? "Cerrar edición" : "Editar profesional"}
+                      </button>
+                      <button
+                        className="outline-action"
+                        type="button"
+                        onClick={() =>
+                          setAccessStaffId(
+                            accessStaffId === member.id ? null : member.id,
+                          )
+                        }
+                      >
+                        {accessStaffId === member.id
+                          ? "Cerrar acceso"
+                          : member.user?.memberships.length
+                            ? "Cambiar acceso"
+                            : "Crear acceso"}
+                      </button>
+                      <button className="outline-action" type="button" onClick={() => toggleStaff(member)}>
+                        {member.active ? "Pausar agenda" : "Activar agenda"}
+                      </button>
+                      <button
+                        className="staff-archive-action"
+                        type="button"
+                        onClick={() => void archiveStaff(member)}
+                      >
+                        Dar de baja
+                      </button>
+                      {editingStaffId === member.id && (
+                        <StaffForm
+                          member={member}
+                          services={data.services}
+                          onSubmit={(event) => updateStaff(event, member)}
+                          submitLabel="Guardar profesional"
+                        />
+                      )}
+                      {accessStaffId === member.id && (
+                        <StaffAccessForm
+                          member={member}
+                          onSubmit={(event) => updateStaffAccess(event, member)}
+                          onRevoke={
+                            member.user?.memberships.length
+                              ? () => revokeStaffAccess(member)
+                              : undefined
+                          }
+                        />
+                      )}
+                    </>
                   )}
                 </article>
               ))}
@@ -1322,6 +1462,58 @@ function StaffForm({
       <button className="button button-primary" type="submit">
         {submitLabel}
       </button>
+    </form>
+  );
+}
+
+function StaffAccessForm({
+  member,
+  onSubmit,
+  onRevoke,
+}: {
+  member: Staff;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => Promise<void>;
+  onRevoke?: () => Promise<void>;
+}) {
+  return (
+    <form className="staff-access-form" onSubmit={onSubmit}>
+      <strong>Acceso personal</strong>
+      <p>
+        Verá únicamente su agenda y podrá cambiar esta contraseña después de
+        ingresar.
+      </p>
+      <label>
+        Email
+        <input
+          name="email"
+          type="email"
+          defaultValue={member.user?.email ?? ""}
+          placeholder="profesional@negocio.com"
+          required
+        />
+      </label>
+      <label>
+        Contraseña temporal
+        <input
+          name="temporaryPassword"
+          type="password"
+          minLength={8}
+          autoComplete="new-password"
+          required
+        />
+      </label>
+      <button className="button button-primary button-small" type="submit">
+        Guardar acceso
+      </button>
+      {onRevoke && (
+        <button
+          className="staff-revoke-action"
+          type="button"
+          onClick={() => void onRevoke()}
+        >
+          Revocar acceso actual
+        </button>
+      )}
     </form>
   );
 }
