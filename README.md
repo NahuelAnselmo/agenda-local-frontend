@@ -1,50 +1,46 @@
 # Agenda Local — Frontend
 
-Aplicación pública de reservas para comercios de servicios. La demo usa la
-marca ficticia **Norte Studio** y consume la API independiente ubicada en
-`../backend`.
+Aplicación responsive de reservas y gestión para comercios de servicios. La
+demo usa la marca ficticia **Norte Studio** y consume una API independiente.
 
-Tecnologías: Next.js 16, React 19, TypeScript y Tailwind CSS 4.
+## Funcionalidades
 
-## Panel de demostración
+- Reserva pública por servicio, profesional, fecha y horario disponible.
+- Comprobante con enlace de cancelación y envío de datos por WhatsApp.
+- Panel protegido con métricas, agenda y estados de los turnos.
+- Búsqueda por cliente y filtros por profesional y estado.
+- Reprogramación de turnos con validación en el backend.
+- Gestión de servicios, profesionales, horarios y perfil público del negocio.
 
-La administración está disponible en `/admin`.
+## Stack
 
-- Email: admin@nortestudio.demo
-- Contraseña: Demo1234!
+- Next.js 16 con App Router
+- React 19
+- TypeScript estricto
+- Tailwind CSS 4 y estilos responsive propios
 
-## Getting Started
+## Desarrollo local
 
-First, run the development server:
+1. Ejecutar `npm install`.
+2. Copiar `.env.example` como `.env.local` si se necesita cambiar la API.
+3. Iniciar el backend en `http://localhost:4000`.
+4. Ejecutar `npm run dev`.
+5. Abrir [http://localhost:3000](http://localhost:3000).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+La variable `NEXT_PUBLIC_API_URL` define la URL pública de la API. Para el
+renderizado del servidor también puede configurarse `API_URL`.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Acceso de demostración
 
-La página principal está en `src/app/page.tsx` y el flujo interactivo de
-reservas en `src/components/booking-widget.tsx`.
+El panel está disponible en `/admin`.
 
-Las fuentes Manrope y Cormorant Garamond se cargan y optimizan con `next/font`.
+- Email: `admin@nortestudio.demo`
+- Contraseña: `Demo1234!`
 
-## Learn More
+## Verificación
 
-To learn more about Next.js, take a look at the following resources:
+- `npm run lint`
+- `npm run build`
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Los datos de respaldo viven en `src/data/demo-business.ts`. Cuando la API está
+disponible, el sitio usa la información editable del negocio.
