@@ -75,6 +75,8 @@ export function BookingWidget({
   const [loadingTimes, setLoadingTimes] = useState(false);
   const [status, setStatus] = useState<Status>("idle");
   const [confirmationToken, setConfirmationToken] = useState("");
+  const [confirmationStaffName, setConfirmationStaffName] = useState("");
+  const [customerName, setCustomerName] = useState("");
 
   const currentStep = stepOrder.indexOf(step);
   const availableProfessionals = professionalOptions.filter((professional) =>
@@ -164,9 +166,11 @@ export function BookingWidget({
 
       if (!response.ok) throw new Error("No se pudo crear la reserva");
       const payload = (await response.json()) as {
-        data: { cancelToken: string };
+        data: { cancelToken: string; staff: { displayName: string } };
       };
       setConfirmationToken(payload.data.cancelToken);
+      setConfirmationStaffName(payload.data.staff.displayName);
+      setCustomerName(String(formData.get("name") ?? ""));
       setStatus("success");
     } catch {
       setStatus("error");
@@ -198,6 +202,25 @@ export function BookingWidget({
         >
           Ver comprobante
         </Link>
+        <a
+          className="button success-whatsapp full-width"
+          href={customerWhatsappUrl({
+            businessPhone: businessData.phone,
+            businessName: businessData.name,
+            customerName,
+            serviceName: selectedService.name,
+            staffName: confirmationStaffName,
+            dateLabel: `${selectedDay.weekday} ${selectedDay.day} ${selectedDay.month}`,
+            time: selectedTime,
+          })}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Avisar por WhatsApp
+        </a>
+        <small className="whatsapp-hint">
+          Se abrirá la conversación del negocio con el mensaje preparado.
+        </small>
         <button
           className="button success-secondary"
           type="button"
@@ -438,4 +461,33 @@ export function BookingWidget({
       )}
     </section>
   );
+}
+
+function customerWhatsappUrl({
+  businessPhone,
+  businessName,
+  customerName,
+  serviceName,
+  staffName,
+  dateLabel,
+  time,
+}: {
+  businessPhone: string;
+  businessName: string;
+  customerName: string;
+  serviceName: string;
+  staffName: string;
+  dateLabel: string;
+  time: string;
+}) {
+  let phone = businessPhone.replace(/\D/g, "").replace(/^0+/, "");
+  if (/^11\d{8}$/.test(phone)) phone = "549" + phone;
+  if (/^54(?!9)\d{10}$/.test(phone)) phone = "549" + phone.slice(2);
+  const message = [
+    `Hola ${businessName}, soy ${customerName}.`,
+    `Reservé ${serviceName} con ${staffName}`,
+    `para el ${dateLabel} a las ${time}.`,
+  ].join(" ");
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
