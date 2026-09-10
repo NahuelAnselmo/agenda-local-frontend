@@ -3,7 +3,13 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 
-type View = "overview" | "appointments" | "services" | "staff" | "availability";
+type View =
+  | "overview"
+  | "appointments"
+  | "services"
+  | "staff"
+  | "availability"
+  | "business";
 type Status = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
 
 type Service = {
@@ -37,6 +43,18 @@ type Appointment = {
   staff: Staff;
 };
 
+type Business = {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  address: string | null;
+  location: string | null;
+  phone: string | null;
+  email: string | null;
+  scheduleText: string | null;
+};
+
 type DashboardData = {
   metrics: {
     weekAppointments: number;
@@ -44,6 +62,7 @@ type DashboardData = {
     activeStaff: number;
     monthlyRevenueInCents: number;
   };
+  business: Business;
   appointments: Appointment[];
   services: Service[];
   staff: Staff[];
@@ -64,6 +83,7 @@ const navItems: { id: View; label: string; icon: string }[] = [
   { id: "services", label: "Servicios", icon: "✦" },
   { id: "staff", label: "Equipo", icon: "◎" },
   { id: "availability", label: "Horarios", icon: "◷" },
+  { id: "business", label: "Negocio", icon: "◇" },
 ];
 
 const weekdays = [
@@ -314,6 +334,26 @@ export function AdminDashboard() {
     await loadDashboard();
   }
 
+  async function updateBusiness(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+
+    await apiRequest("/admin/business", {
+      method: "PATCH",
+      body: JSON.stringify({
+        name: formData.get("name"),
+        category: formData.get("category"),
+        address: formData.get("address"),
+        location: formData.get("location"),
+        phone: formData.get("phone"),
+        email: formData.get("email"),
+        scheduleText: formData.get("scheduleText"),
+      }),
+    });
+    setMessage("Información pública actualizada");
+    await loadDashboard();
+  }
+
   if (authState === "loading") {
     return (
       <main className="admin-loading">
@@ -403,7 +443,7 @@ export function AdminDashboard() {
       <section className="admin-content">
         <header className="admin-topbar">
           <div>
-            <p className="eyebrow">Norte Studio</p>
+            <p className="eyebrow">{data.business.name}</p>
             <h1>{navItems.find((item) => item.id === view)?.label}</h1>
           </div>
           <div className="admin-profile">
@@ -634,6 +674,86 @@ export function AdminDashboard() {
                 </p>
                 <button className="button button-primary" type="submit">
                   Guardar horarios
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {view === "business" && (
+          <section className="admin-card">
+            <div className="admin-card-heading">
+              <div>
+                <p className="eyebrow">Configuración</p>
+                <h2>Información del negocio</h2>
+              </div>
+              <a className="text-action" href="/" target="_blank">
+                Ver perfil público ↗
+              </a>
+            </div>
+            <form className="business-form" onSubmit={updateBusiness}>
+              <label>
+                Nombre comercial
+                <input name="name" defaultValue={data.business.name} required />
+              </label>
+              <label>
+                Rubro
+                <input
+                  name="category"
+                  defaultValue={data.business.category}
+                  placeholder="Ej. Barbería y cuidado personal"
+                  required
+                />
+              </label>
+              <label>
+                Dirección
+                <input
+                  name="address"
+                  defaultValue={data.business.address ?? ""}
+                  placeholder="Calle y número"
+                />
+              </label>
+              <label>
+                Ciudad o barrio
+                <input
+                  name="location"
+                  defaultValue={data.business.location ?? ""}
+                  placeholder="Ej. Palermo, Buenos Aires"
+                />
+              </label>
+              <label>
+                WhatsApp o teléfono
+                <input
+                  name="phone"
+                  type="tel"
+                  defaultValue={data.business.phone ?? ""}
+                  placeholder="Ej. +54 11 5555-0194"
+                />
+              </label>
+              <label>
+                Email público
+                <input
+                  name="email"
+                  type="email"
+                  defaultValue={data.business.email ?? ""}
+                  placeholder="hola@tunegocio.com"
+                />
+              </label>
+              <label className="wide-field">
+                Horario resumido
+                <input
+                  name="scheduleText"
+                  defaultValue={data.business.scheduleText ?? ""}
+                  placeholder="Ej. Lun a sáb · 9:00 a 20:00"
+                />
+              </label>
+              <div className="business-form-footer wide-field">
+                <p>
+                  Estos datos se muestran a clientes en la página de reservas.
+                  Los horarios disponibles se administran en la sección Horarios.
+                </p>
+                <button className="button button-primary" type="submit">
+                  Guardar información
                 </button>
               </div>
             </form>
