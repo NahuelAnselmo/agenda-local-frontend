@@ -154,6 +154,9 @@ export function AdminDashboard() {
   const [showNewService, setShowNewService] = useState(false);
   const [showNewStaff, setShowNewStaff] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
+  const [agendaAppointments, setAgendaAppointments] = useState<Appointment[] | null>(
+    null,
+  );
 
   async function loadDashboard() {
     try {
@@ -217,6 +220,50 @@ export function AdminDashboard() {
     });
     setMessage("Turno actualizado");
     await loadDashboard();
+    if (view === "appointments") await loadAppointments();
+  }
+
+  async function loadAppointments(filters?: {
+    q?: string;
+    status?: string;
+    staffId?: string;
+  }) {
+    const query = new URLSearchParams();
+    if (filters?.q) query.set("q", filters.q);
+    if (filters?.status) query.set("status", filters.status);
+    if (filters?.staffId) query.set("staffId", filters.staffId);
+    const suffix = query.size > 0 ? "?" + query.toString() : "";
+    const response = (await apiRequest("/admin/appointments" + suffix)) as {
+      data: Appointment[];
+    };
+    setAgendaAppointments(response.data);
+  }
+
+  async function filterAppointments(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    try {
+      await loadAppointments({
+        q: String(formData.get("q") ?? "").trim(),
+        status: String(formData.get("status") ?? ""),
+        staffId: String(formData.get("staffId") ?? ""),
+      });
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo filtrar la agenda",
+      );
+    }
+  }
+
+  function changeView(nextView: View) {
+    setView(nextView);
+    if (nextView === "appointments") {
+      void loadAppointments().catch((error: unknown) => {
+        setMessage(
+          error instanceof Error ? error.message : "No se pudo cargar la agenda",
+        );
+      });
+    }
   }
 
   async function toggleService(service: Service) {
@@ -427,7 +474,7 @@ export function AdminDashboard() {
             <button
               key={item.id}
               className={view === item.id ? "active" : ""}
-              onClick={() => setView(item.id)}
+              onClick={() => changeView(item.id)}
               type="button"
             >
               <span aria-hidden="true">{item.icon}</span>{item.label}
@@ -457,7 +504,7 @@ export function AdminDashboard() {
             <button
               key={item.id}
               className={view === item.id ? "active" : ""}
-              onClick={() => setView(item.id)}
+              onClick={() => changeView(item.id)}
               type="button"
             >
               {item.label}
@@ -482,11 +529,12 @@ export function AdminDashboard() {
             <section className="admin-card">
               <div className="admin-card-heading">
                 <div><p className="eyebrow">Agenda</p><h2>Próximos turnos</h2></div>
-                <button className="text-action" onClick={() => setView("appointments")} type="button">Ver agenda completa →</button>
+                <button className="text-action" onClick={() => changeView("appointments")} type="button">Ver agenda completa →</button>
               </div>
               <AppointmentList
                 appointments={data.appointments.slice(0, 5)}
                 onUpdate={updateAppointment}
+                businessName={data.business.name}
               />
             </section>
           </>
@@ -496,9 +544,44 @@ export function AdminDashboard() {
           <section className="admin-card">
             <div className="admin-card-heading">
               <div><p className="eyebrow">Operación diaria</p><h2>Agenda de turnos</h2></div>
-              <span className="count-pill">{data.appointments.length} próximos</span>
+              <span className="count-pill">
+                {agendaAppointments?.length ?? data.appointments.length} resultados
+              </span>
             </div>
-            <AppointmentList appointments={data.appointments} onUpdate={updateAppointment} />
+            <form className="agenda-filters" onSubmit={filterAppointments}>
+              <label>
+                <span>Buscar cliente</span>
+                <input name="q" type="search" placeholder="Nombre, email o teléfono" />
+              </label>
+              <label>
+                <span>Profesional</span>
+                <select name="staffId" defaultValue="">
+                  <option value="">Todos</option>
+                  {data.staff.map((member) => (
+                    <option value={member.id} key={member.id}>
+                      {member.displayName}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                <span>Estado</span>
+                <select name="status" defaultValue="">
+                  <option value="">Todos</option>
+                  {Object.entries(statusLabels).map(([value, label]) => (
+                    <option value={value} key={value}>{label}</option>
+                  ))}
+                </select>
+              </label>
+              <button className="button button-dark button-small" type="submit">
+                Aplicar filtros
+              </button>
+            </form>
+            <AppointmentList
+              appointments={agendaAppointments ?? data.appointments}
+              onUpdate={updateAppointment}
+              businessName={data.business.name}
+            />
           </section>
         )}
 
@@ -785,9 +868,11 @@ function Metric({
 function AppointmentList({
   appointments,
   onUpdate,
+  businessName,
 }: {
   appointments: Appointment[];
   onUpdate: (id: string, status: Status) => Promise<void>;
+  businessName: string;
 }) {
   if (appointments.length === 0) {
     return <p className="empty-state">No hay turnos próximos.</p>;
@@ -814,19 +899,44 @@ function AppointmentList({
           <span className={"status-badge status-" + appointment.status.toLowerCase()}>
             {statusLabels[appointment.status]}
           </span>
-          <select
-            aria-label={"Cambiar estado del turno de " + appointment.customerName}
-            value={appointment.status}
-            onChange={(event) => void onUpdate(appointment.id, event.target.value as Status)}
-          >
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <option value={value} key={value}>{label}</option>
-            ))}
-          </select>
+          <div className="appointment-actions">
+            <select
+              aria-label={"Cambiar estado del turno de " + appointment.customerName}
+              value={appointment.status}
+              onChange={(event) => void onUpdate(appointment.id, event.target.value as Status)}
+            >
+              {Object.entries(statusLabels).map(([value, label]) => (
+                <option value={value} key={value}>{label}</option>
+              ))}
+            </select>
+            <a
+              href={whatsappUrl(appointment, businessName)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={"Escribir por WhatsApp a " + appointment.customerName}
+            >
+              WhatsApp ↗
+            </a>
+          </div>
         </article>
       ))}
     </div>
   );
+}
+
+function whatsappUrl(appointment: Appointment, businessName: string) {
+  let phone = appointment.customerPhone.replace(/\D/g, "").replace(/^0+/, "");
+  if (/^11\d{8}$/.test(phone)) phone = "549" + phone;
+  if (/^54(?!9)\d{10}$/.test(phone)) phone = "549" + phone.slice(2);
+
+  const message = [
+    `Hola ${appointment.customerName}, te escribimos de ${businessName}.`,
+    `Tu turno es ${appointmentDate(appointment.startAt)} para ${appointment.service.name}`,
+    `con ${appointment.staff.displayName}.`,
+    "¿Podés confirmarnos tu asistencia?",
+  ].join(" ");
+
+  return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 }
 
 function NewServiceForm({
