@@ -9,7 +9,8 @@ type View =
   | "services"
   | "staff"
   | "availability"
-  | "business";
+  | "business"
+  | "account";
 type Status = "PENDING" | "CONFIRMED" | "CANCELLED" | "COMPLETED" | "NO_SHOW";
 
 type Service = {
@@ -63,6 +64,11 @@ type DashboardData = {
     monthlyRevenueInCents: number;
   };
   business: Business;
+  account: {
+    user: { id: string; name: string; email: string };
+    role: "OWNER" | "STAFF";
+    staffId: string | null;
+  };
   appointments: Appointment[];
   services: Service[];
   staff: Staff[];
@@ -84,6 +90,7 @@ const navItems: { id: View; label: string; icon: string }[] = [
   { id: "staff", label: "Equipo", icon: "◎" },
   { id: "availability", label: "Horarios", icon: "◷" },
   { id: "business", label: "Negocio", icon: "◇" },
+  { id: "account", label: "Mi cuenta", icon: "○" },
 ];
 
 const weekdays = [
@@ -218,6 +225,7 @@ export function AdminDashboard() {
   async function logout() {
     await apiRequest("/auth/logout", { method: "POST" });
     setData(null);
+    setView("overview");
     setAuthState("guest");
   }
 
@@ -443,6 +451,39 @@ export function AdminDashboard() {
     await loadDashboard();
   }
 
+  async function updateCredentials(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const formData = new FormData(form);
+    const newPassword = String(formData.get("newPassword") ?? "");
+    const passwordConfirmation = String(
+      formData.get("passwordConfirmation") ?? "",
+    );
+    if (newPassword && newPassword !== passwordConfirmation) {
+      setMessage("La confirmación no coincide con la contraseña nueva");
+      return;
+    }
+
+    try {
+      await apiRequest("/auth/me/credentials", {
+        method: "PATCH",
+        body: JSON.stringify({
+          currentPassword: formData.get("currentPassword"),
+          name: formData.get("name"),
+          email: formData.get("email"),
+          ...(newPassword ? { newPassword } : {}),
+        }),
+      });
+      form.reset();
+      setMessage("Credenciales actualizadas correctamente");
+      await loadDashboard();
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "No se pudo actualizar la cuenta",
+      );
+    }
+  }
+
   if (authState === "loading") {
     return (
       <main className="admin-loading">
@@ -503,6 +544,18 @@ export function AdminDashboard() {
   }
 
   if (!data) return null;
+  const visibleNavItems =
+    data.account.role === "OWNER"
+      ? navItems
+      : navItems.filter(({ id }) =>
+          ["overview", "appointments", "account"].includes(id),
+        );
+  const accountInitials = data.account.user.name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
   return (
     <main className="admin-shell">
@@ -512,7 +565,7 @@ export function AdminDashboard() {
           <span><strong>Norte</strong><small>Gestión</small></span>
         </Link>
         <nav aria-label="Secciones de administración">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <button
               key={item.id}
               className={view === item.id ? "active" : ""}
@@ -533,16 +586,19 @@ export function AdminDashboard() {
         <header className="admin-topbar">
           <div>
             <p className="eyebrow">{data.business.name}</p>
-            <h1>{navItems.find((item) => item.id === view)?.label}</h1>
+            <h1>{visibleNavItems.find((item) => item.id === view)?.label}</h1>
           </div>
           <div className="admin-profile">
-            <span>MN</span>
-            <div><strong>Martina Norte</strong><small>Propietaria</small></div>
+            <span>{accountInitials}</span>
+            <div>
+              <strong>{data.account.user.name}</strong>
+              <small>{data.account.role === "OWNER" ? "Propietario" : "Profesional"}</small>
+            </div>
           </div>
         </header>
 
         <div className="mobile-admin-nav">
-          {navItems.map((item) => (
+          {visibleNavItems.map((item) => (
             <button
               key={item.id}
               className={view === item.id ? "active" : ""}
@@ -897,6 +953,83 @@ export function AdminDashboard() {
                 </p>
                 <button className="button button-primary" type="submit">
                   Guardar información
+                </button>
+              </div>
+            </form>
+          </section>
+        )}
+
+        {view === "account" && (
+          <section className="admin-card account-card">
+            <div className="admin-card-heading">
+              <div>
+                <p className="eyebrow">Seguridad</p>
+                <h2>Mis credenciales</h2>
+              </div>
+              <span className="count-pill">
+                {data.account.role === "OWNER" ? "Propietario" : "Profesional"}
+              </span>
+            </div>
+            <form
+              className="account-form"
+              key={data.account.user.email}
+              onSubmit={updateCredentials}
+            >
+              <label>
+                Nombre
+                <input
+                  name="name"
+                  defaultValue={data.account.user.name}
+                  autoComplete="name"
+                  required
+                />
+              </label>
+              <label>
+                Email de acceso
+                <input
+                  name="email"
+                  type="email"
+                  defaultValue={data.account.user.email}
+                  autoComplete="email"
+                  required
+                />
+              </label>
+              <label>
+                Contraseña actual
+                <input
+                  name="currentPassword"
+                  type="password"
+                  autoComplete="current-password"
+                  minLength={8}
+                  required
+                />
+              </label>
+              <label>
+                Contraseña nueva
+                <input
+                  name="newPassword"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                  placeholder="Dejar vacío para conservarla"
+                />
+              </label>
+              <label>
+                Repetir contraseña nueva
+                <input
+                  name="passwordConfirmation"
+                  type="password"
+                  autoComplete="new-password"
+                  minLength={8}
+                />
+              </label>
+              <div className="account-form-footer">
+                <p>
+                  Por seguridad se solicita la contraseña actual para cualquier
+                  cambio. Al cambiarla se cierran las demás sesiones abiertas.
+                </p>
+                <button className="button button-primary" type="submit">
+                  Actualizar credenciales
                 </button>
               </div>
             </form>
