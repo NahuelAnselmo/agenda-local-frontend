@@ -37,6 +37,16 @@ El panel está disponible en `/admin`.
 - Email: `admin@nortestudio.demo`
 - Contraseña: `Demo1234!`
 
+## Accesos del equipo
+
+El propietario crea el acceso de cada profesional desde **Equipo → Crear
+acceso**, definiendo un email y una contraseña temporal. El profesional ingresa
+en el mismo `/admin`, ve únicamente su agenda y puede cambiar sus credenciales
+desde **Mi cuenta**.
+
+Dar de baja a una persona revoca su acceso y la oculta de las reservas, pero
+conserva sus turnos anteriores. El registro puede restaurarse si se reincorpora.
+
 ## Verificación
 
 - `npm run lint`
