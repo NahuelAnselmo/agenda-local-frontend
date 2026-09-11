@@ -3,6 +3,7 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { NewAppointmentForm } from "./admin/new-appointment-form";
+import { TimeOffPanel } from "./admin/time-off-panel";
 import type {
   Appointment,
   AppointmentSource,
@@ -20,6 +21,7 @@ const navItems: { id: View; label: string; icon: string }[] = [
   { id: "services", label: "Servicios", icon: "✦" },
   { id: "staff", label: "Equipo", icon: "◎" },
   { id: "availability", label: "Horarios", icon: "◷" },
+  { id: "timeOff", label: "Bloqueos", icon: "⊘" },
   { id: "business", label: "Negocio", icon: "◇" },
   { id: "account", label: "Mi cuenta", icon: "○" },
 ];
@@ -574,7 +576,7 @@ export function AdminDashboard() {
     data.account.role === "OWNER"
       ? navItems
       : navItems.filter(({ id }) =>
-          ["overview", "appointments", "account"].includes(id),
+          ["overview", "appointments", "timeOff", "account"].includes(id),
         );
   const accountInitials = data.account.user.name
     .split(/\s+/)
@@ -743,6 +745,15 @@ export function AdminDashboard() {
               }
             />
           </section>
+        )}
+
+        {view === "timeOff" && (
+          <TimeOffPanel
+            role={data.account.role}
+            currentStaffId={data.account.staffId}
+            staff={data.staff}
+            onMessage={setMessage}
+          />
         )}
 
         {view === "services" && (

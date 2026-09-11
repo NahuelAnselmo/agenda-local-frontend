@@ -4,6 +4,7 @@ export type View =
   | "services"
   | "staff"
   | "availability"
+  | "timeOff"
   | "business"
   | "account";
 

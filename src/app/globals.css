@@ -374,6 +374,16 @@ button { color: inherit; }
 .availability-feedback { min-height: 16px; margin: 0; align-self: center; color: #a23e2a; font-size: 9px; }
 .new-appointment-actions { display: flex; justify-content: flex-end; gap: 9px; }
 .new-appointment-actions .outline-action { padding: 0 16px; }
+.time-off-form { margin-bottom: 24px; padding: 20px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: end; gap: 12px; border-radius: 7px; background: #efede6; }
+.time-off-form label { display: grid; gap: 7px; color: #4c5652; font-size: 10px; font-weight: 800; }
+.time-off-form input, .time-off-form select { min-width: 0; width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); font: inherit; font-size: 10px; }
+.time-off-list { border-top: 1px solid var(--line); }
+.time-off-list article { min-height: 78px; display: grid; grid-template-columns: 1fr 1.5fr auto; align-items: center; gap: 20px; border-bottom: 1px solid var(--line); }
+.time-off-list span, .time-off-list strong { display: block; }
+.time-off-list span { margin-bottom: 5px; color: var(--terracotta); font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.time-off-list strong { font-size: 11px; }
+.time-off-list p { margin: 0; color: var(--muted); font-size: 10px; }
+.time-off-list button { padding: 7px 0; border: 0; border-bottom: 1px solid #a94d3b; background: transparent; color: #a94d3b; cursor: pointer; font-size: 9px; font-weight: 800; }
 .empty-state { padding: 45px 0; color: var(--muted); font-size: 11px; text-align: center; }
 
 .management-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -449,6 +459,7 @@ button { color: inherit; }
   .agenda-filters { grid-template-columns: 1fr 1fr; }
   .reschedule-panel form { grid-template-columns: 1fr 1fr; }
   .new-appointment-panel form { grid-template-columns: 1fr 1fr; }
+  .time-off-form { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -482,6 +493,9 @@ button { color: inherit; }
   .new-appointment-panel form { grid-template-columns: 1fr; }
   .new-appointment-panel .manual-notes { grid-column: auto; }
   .new-appointment-actions { align-items: stretch; flex-direction: column-reverse; }
+  .time-off-form { grid-template-columns: 1fr; }
+  .time-off-list article { padding: 16px 0; grid-template-columns: 1fr auto; gap: 8px 14px; }
+  .time-off-list p { grid-column: 1 / -1; }
   .management-grid { grid-template-columns: 1fr; }
   .new-service-form { grid-template-columns: 1fr; }
   .new-service-form .wide-field { grid-column: auto; }
