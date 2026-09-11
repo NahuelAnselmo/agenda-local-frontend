@@ -330,6 +330,7 @@ button { color: inherit; }
 .admin-card-heading { margin-bottom: 25px; display: flex; align-items: end; justify-content: space-between; gap: 20px; }
 .admin-card-heading .eyebrow { margin-bottom: 5px; }
 .admin-card-heading h2 { margin: 0; font-family: var(--font-cormorant); font-size: 30px; }
+.admin-heading-actions { display: flex; align-items: center; gap: 10px; }
 .text-action { padding: 5px 0; border: 0; border-bottom: 1px solid var(--line); background: transparent; color: var(--terracotta); cursor: pointer; font-size: 9px; font-weight: 800; }
 .count-pill { padding: 7px 10px; border-radius: 99px; background: var(--sage-light); color: #435148; font-size: 9px; font-weight: 800; }
 
@@ -360,6 +361,19 @@ button { color: inherit; }
 .reschedule-panel input, .reschedule-panel select { min-width: 0; min-height: 40px; padding: 0 9px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); font-size: 9px; }
 .reschedule-actions { grid-column: 1 / -1; display: flex; justify-content: flex-end; gap: 9px; }
 .reschedule-actions .outline-action { padding: 0 16px; }
+.new-appointment-panel { margin: 0 0 22px; padding: 22px; border: 1px solid #d7c3b6; border-radius: 8px; background: #fff9f4; }
+.new-appointment-panel h3 { margin: 0; font-family: var(--font-cormorant); font-size: 25px; }
+.new-appointment-panel > div > p:last-child { margin: 5px 0 0; color: var(--muted); font-size: 10px; }
+.new-appointment-panel form { margin-top: 18px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; align-items: end; }
+.new-appointment-panel label { display: grid; gap: 7px; color: #4c5652; font-size: 10px; font-weight: 800; }
+.new-appointment-panel input, .new-appointment-panel select, .new-appointment-panel textarea { min-width: 0; width: 100%; min-height: 42px; padding: 0 11px; border: 1px solid var(--line); border-radius: 5px; background: white; color: var(--ink); font: inherit; font-size: 11px; }
+.new-appointment-panel textarea { min-height: 76px; padding-block: 10px; resize: vertical; }
+.new-appointment-panel input:focus, .new-appointment-panel select:focus, .new-appointment-panel textarea:focus { border-color: var(--terracotta); outline: 3px solid rgba(197, 102, 71, .14); }
+.new-appointment-panel .manual-notes { grid-column: 1 / 3; }
+.optional-label { color: var(--muted); font-size: 8px; font-weight: 600; }
+.availability-feedback { min-height: 16px; margin: 0; align-self: center; color: #a23e2a; font-size: 9px; }
+.new-appointment-actions { display: flex; justify-content: flex-end; gap: 9px; }
+.new-appointment-actions .outline-action { padding: 0 16px; }
 .empty-state { padding: 45px 0; color: var(--muted); font-size: 11px; text-align: center; }
 
 .management-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
@@ -434,6 +448,7 @@ button { color: inherit; }
   .appointment-actions { grid-column: 2 / -1; width: 150px; margin: -10px 0 13px; }
   .agenda-filters { grid-template-columns: 1fr 1fr; }
   .reschedule-panel form { grid-template-columns: 1fr 1fr; }
+  .new-appointment-panel form { grid-template-columns: 1fr 1fr; }
 }
 
 @media (max-width: 760px) {
@@ -456,12 +471,17 @@ button { color: inherit; }
   .metric-card strong { font-size: 29px; }
   .admin-card { padding: 20px 15px; }
   .admin-card-heading { align-items: start; }
+  .admin-heading-actions { align-items: flex-end; flex-direction: column-reverse; }
   .appointment-list article { padding: 15px 0; grid-template-columns: 66px 1fr auto; gap: 10px; }
   .appointment-service { grid-column: 2 / -1; }
   .appointment-actions { grid-column: 2 / -1; width: 100%; margin: 0; }
   .agenda-filters { grid-template-columns: 1fr; }
   .reschedule-panel form { grid-template-columns: 1fr; }
   .reschedule-actions { grid-column: auto; align-items: stretch; flex-direction: column-reverse; }
+  .new-appointment-panel { padding: 18px 14px; }
+  .new-appointment-panel form { grid-template-columns: 1fr; }
+  .new-appointment-panel .manual-notes { grid-column: auto; }
+  .new-appointment-actions { align-items: stretch; flex-direction: column-reverse; }
   .management-grid { grid-template-columns: 1fr; }
   .new-service-form { grid-template-columns: 1fr; }
   .new-service-form .wide-field { grid-column: auto; }
