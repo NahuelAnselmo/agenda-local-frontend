@@ -458,21 +458,30 @@ export function AdminDashboard() {
     const email = String(formData.get("email") ?? "");
     const temporaryPassword = String(formData.get("temporaryPassword") ?? "");
     try {
-      await apiRequest("/admin/staff/" + member.id + "/access", {
+      const response = (await apiRequest("/admin/staff/" + member.id + "/access", {
         method: "PUT",
         body: JSON.stringify({
           email,
           temporaryPassword,
         }),
-      });
+      })) as {
+        data: {
+          emailDelivery: "sent" | "not_configured" | "failed";
+        };
+      };
       setStaffAccessDetails({
         staffName: member.displayName,
         email,
         temporaryPassword,
         loginUrl: window.location.origin + "/admin",
+        emailDelivery: response.data.emailDelivery,
       });
       setAccessStaffId(null);
-      setMessage("Acceso actualizado. Ya podés compartir las credenciales");
+      setMessage(
+        response.data.emailDelivery === "sent"
+          ? "Acceso creado y email enviado"
+          : "Acceso creado; revisá el estado del email",
+      );
       await loadDashboard();
     } catch (error) {
       setMessage(
@@ -1525,8 +1534,8 @@ function StaffAccessForm({
     <form className="staff-access-form" onSubmit={onSubmit}>
       <strong>Acceso personal</strong>
       <p>
-        Verá únicamente su agenda. Después de guardar te mostraremos los datos
-        para copiarlos o preparar el email; el envío no es automático.
+        Verá únicamente su agenda. Al guardar, recibirá automáticamente un email
+        con el enlace de ingreso y estas credenciales.
       </p>
       <label>
         Email

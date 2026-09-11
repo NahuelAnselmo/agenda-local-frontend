@@ -5,6 +5,7 @@ type StaffAccessDetails = {
   email: string;
   temporaryPassword: string;
   loginUrl: string;
+  emailDelivery: "sent" | "not_configured" | "failed";
 };
 
 export function StaffAccessDelivery({
@@ -26,6 +27,13 @@ export function StaffAccessDelivery({
   const emailUrl = `mailto:${encodeURIComponent(details.email)}?subject=${encodeURIComponent(
     "Acceso a la agenda",
   )}&body=${encodeURIComponent(message)}`;
+  const deliveryMessage = {
+    sent: "El email con las credenciales fue enviado automáticamente.",
+    not_configured:
+      "El acceso fue creado, pero Resend todavía no está configurado. Compartí estos datos manualmente.",
+    failed:
+      "El acceso fue creado, pero el proveedor rechazó el email. Podés reenviarlo manualmente.",
+  }[details.emailDelivery];
 
   async function copyDetails() {
     try {
@@ -41,8 +49,8 @@ export function StaffAccessDelivery({
       <div>
         <p className="eyebrow">Acceso creado</p>
         <h3 id="access-delivery-title">Compartí estos datos con {details.staffName}</h3>
-        <p>
-          Por ahora el sistema prepara el mensaje, pero no envía emails automáticamente.
+        <p className={details.emailDelivery === "sent" ? "delivery-success" : ""}>
+          {deliveryMessage}
         </p>
       </div>
       <dl>

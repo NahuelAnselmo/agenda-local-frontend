@@ -44,6 +44,10 @@ acceso**, definiendo un email y una contraseña temporal. El profesional ingresa
 en el mismo `/admin`, ve únicamente su agenda y puede cambiar sus credenciales
 desde **Mi cuenta**.
 
+Cuando Resend está configurado en el backend, el profesional recibe
+automáticamente un email con el enlace de ingreso, su usuario y la contraseña
+temporal. Si el envío falla, el panel conserva una copia manual de esos datos.
+
 Dar de baja a una persona revoca su acceso y la oculta de las reservas, pero
 conserva sus turnos anteriores. El registro puede restaurarse si se reincorpora.
 

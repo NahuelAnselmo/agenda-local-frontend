@@ -438,6 +438,7 @@ button { color: inherit; }
 .access-delivery { margin: -5px 0 25px; padding: 22px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px 28px; border: 1px solid #b8cdb9; border-radius: 8px; background: #f2f8f0; }
 .access-delivery h3 { margin: 0; font-family: var(--font-cormorant); font-size: 24px; }
 .access-delivery > div > p:last-child { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.access-delivery > div > p.delivery-success { color: #3f6645; font-weight: 800; }
 .access-delivery dl { margin: 0; display: grid; gap: 10px; }
 .access-delivery dl div { min-width: 0; }
 .access-delivery dt { margin-bottom: 3px; color: var(--muted); font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
