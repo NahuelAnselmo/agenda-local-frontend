@@ -55,6 +55,20 @@ const sourceLabels: Record<AppointmentSource, string> = {
   WALK_IN: "En el local",
 };
 
+type AppointmentFilters = {
+  q: string;
+  status: string;
+  staffId: string;
+};
+
+function appointmentsPath(filters: AppointmentFilters) {
+  const query = new URLSearchParams();
+  if (filters.q) query.set("q", filters.q);
+  if (filters.status) query.set("status", filters.status);
+  if (filters.staffId) query.set("staffId", filters.staffId);
+  return "/admin/appointments" + (query.size > 0 ? "?" + query.toString() : "");
+}
+
 function money(value: number) {
   return new Intl.NumberFormat("es-AR", {
     style: "currency",
@@ -130,6 +144,45 @@ export function AdminDashboard() {
     };
   }, []);
 
+  useEffect(() => {
+    if (authState !== "authenticated") return;
+    let refreshing = false;
+
+    async function refreshData() {
+      if (refreshing || document.visibilityState === "hidden") return;
+      refreshing = true;
+      try {
+        const [dashboardResponse, appointmentsResponse] = await Promise.all([
+          apiRequest("/admin/dashboard"),
+          view === "appointments"
+            ? apiRequest(appointmentsPath(appointmentFilters))
+            : Promise.resolve(null),
+        ]);
+        setData((dashboardResponse as { data: DashboardData }).data);
+        if (appointmentsResponse) {
+          setAgendaAppointments(
+            (appointmentsResponse as { data: Appointment[] }).data,
+          );
+        }
+      } catch {
+        // Una falla temporal no cierra la sesión ni interrumpe el trabajo actual.
+      } finally {
+        refreshing = false;
+      }
+    }
+
+    const interval = window.setInterval(() => void refreshData(), 20_000);
+    const refreshOnFocus = () => void refreshData();
+    window.addEventListener("focus", refreshOnFocus);
+    document.addEventListener("visibilitychange", refreshOnFocus);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener("focus", refreshOnFocus);
+      document.removeEventListener("visibilitychange", refreshOnFocus);
+    };
+  }, [appointmentFilters, authState, view]);
+
   async function login(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
@@ -167,17 +220,7 @@ export function AdminDashboard() {
   }
 
   async function loadAppointments(filters = appointmentFilters) {
-    const activeFilters: {
-    q?: string;
-    status?: string;
-    staffId?: string;
-    } = filters;
-    const query = new URLSearchParams();
-    if (activeFilters.q) query.set("q", activeFilters.q);
-    if (activeFilters.status) query.set("status", activeFilters.status);
-    if (activeFilters.staffId) query.set("staffId", activeFilters.staffId);
-    const suffix = query.size > 0 ? "?" + query.toString() : "";
-    const response = (await apiRequest("/admin/appointments" + suffix)) as {
+    const response = (await apiRequest(appointmentsPath(filters))) as {
       data: Appointment[];
     };
     setAgendaAppointments(response.data);
@@ -634,7 +677,10 @@ export function AdminDashboard() {
             <span>{accountInitials}</span>
             <div>
               <strong>{data.account.user.name}</strong>
-              <small>{data.account.role === "OWNER" ? "Propietario" : "Profesional"}</small>
+              <small>
+                {data.account.role === "OWNER" ? "Propietario" : "Profesional"}
+                {" · Sincronización automática"}
+              </small>
             </div>
           </div>
         </header>
