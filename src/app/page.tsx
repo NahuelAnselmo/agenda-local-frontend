@@ -113,8 +113,8 @@ export default async function Home() {
             vos. La reserva se confirma en el momento.
           </p>
           <ul>
-            <li><span>✓</span> Cancelación y reprogramación online</li>
-            <li><span>✓</span> Recordatorio antes del turno</li>
+            <li><span>✓</span> Cancelación online desde tu comprobante</li>
+            <li><span>✓</span> Contacto directo por WhatsApp</li>
             <li><span>✓</span> Tus datos siempre protegidos</li>
           </ul>
         </div>
