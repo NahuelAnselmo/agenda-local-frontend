@@ -434,6 +434,19 @@ button { color: inherit; }
 .staff-access-form input { min-height: 39px; padding: 0 10px; border: 1px solid var(--line); border-radius: 4px; background: white; color: var(--ink); }
 .staff-access-form .button { min-height: 38px; }
 .staff-access-form .staff-revoke-action { justify-self: start; }
+.staff-login-link { margin-top: 10px; color: #34785c; font-size: 9px; font-weight: 800; }
+.access-delivery { margin: -5px 0 25px; padding: 22px; display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px 28px; border: 1px solid #b8cdb9; border-radius: 8px; background: #f2f8f0; }
+.access-delivery h3 { margin: 0; font-family: var(--font-cormorant); font-size: 24px; }
+.access-delivery > div > p:last-child { margin: 6px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
+.access-delivery dl { margin: 0; display: grid; gap: 10px; }
+.access-delivery dl div { min-width: 0; }
+.access-delivery dt { margin-bottom: 3px; color: var(--muted); font-size: 8px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.access-delivery dd { margin: 0; overflow-wrap: anywhere; font-size: 11px; font-weight: 800; }
+.access-delivery dd a { color: #34785c; }
+.access-delivery code { padding: 3px 6px; border-radius: 3px; background: white; font-family: inherit; }
+.access-delivery-actions { grid-column: 1 / -1; display: flex; align-items: center; gap: 10px; }
+.access-delivery-actions .outline-action { padding-inline: 16px; }
+.access-delivery-actions .text-action { margin-left: auto; }
 .business-form { max-width: 820px; display: grid; grid-template-columns: 1fr 1fr; gap: 4px 18px; }
 .business-form .wide-field { grid-column: 1 / -1; }
 .business-form-footer { padding-top: 10px; display: flex; align-items: center; justify-content: space-between; gap: 30px; border-top: 1px solid var(--line); }
@@ -501,6 +514,9 @@ button { color: inherit; }
   .new-service-form .wide-field { grid-column: auto; }
   .staff-fields { grid-template-columns: 1fr; }
   .staff-fields .wide-field { grid-column: auto; }
+  .access-delivery { grid-template-columns: 1fr; }
+  .access-delivery-actions { grid-column: auto; align-items: stretch; flex-direction: column; }
+  .access-delivery-actions .text-action { align-self: center; margin-left: 0; }
   .business-form { grid-template-columns: 1fr; }
   .business-form .wide-field { grid-column: auto; }
   .business-form-footer { align-items: stretch; flex-direction: column; }

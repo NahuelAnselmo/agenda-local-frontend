@@ -3,6 +3,10 @@
 import { type FormEvent, useEffect, useState } from "react";
 import Link from "next/link";
 import { NewAppointmentForm } from "./admin/new-appointment-form";
+import {
+  StaffAccessDelivery,
+  type StaffAccessDetails,
+} from "./admin/staff-access-delivery";
 import { TimeOffPanel } from "./admin/time-off-panel";
 import type {
   Appointment,
@@ -82,6 +86,8 @@ export function AdminDashboard() {
   const [showNewAppointment, setShowNewAppointment] = useState(false);
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
   const [accessStaffId, setAccessStaffId] = useState<string | null>(null);
+  const [staffAccessDetails, setStaffAccessDetails] =
+    useState<StaffAccessDetails | null>(null);
   const [agendaAppointments, setAgendaAppointments] = useState<Appointment[] | null>(
     null,
   );
@@ -406,16 +412,24 @@ export function AdminDashboard() {
   ) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    const email = String(formData.get("email") ?? "");
+    const temporaryPassword = String(formData.get("temporaryPassword") ?? "");
     try {
       await apiRequest("/admin/staff/" + member.id + "/access", {
         method: "PUT",
         body: JSON.stringify({
-          email: formData.get("email"),
-          temporaryPassword: formData.get("temporaryPassword"),
+          email,
+          temporaryPassword,
         }),
       });
+      setStaffAccessDetails({
+        staffName: member.displayName,
+        email,
+        temporaryPassword,
+        loginUrl: window.location.origin + "/admin",
+      });
       setAccessStaffId(null);
-      setMessage("Acceso actualizado. Compartí las credenciales con el profesional");
+      setMessage("Acceso actualizado. Ya podés compartir las credenciales");
       await loadDashboard();
     } catch (error) {
       setMessage(
@@ -830,6 +844,13 @@ export function AdminDashboard() {
                 services={data.services}
                 onSubmit={createStaff}
                 submitLabel="Agregar profesional"
+              />
+            )}
+            {staffAccessDetails && (
+              <StaffAccessDelivery
+                details={staffAccessDetails}
+                onClose={() => setStaffAccessDetails(null)}
+                onMessage={setMessage}
               />
             )}
             <div className="management-grid staff-management">
@@ -1458,8 +1479,8 @@ function StaffAccessForm({
     <form className="staff-access-form" onSubmit={onSubmit}>
       <strong>Acceso personal</strong>
       <p>
-        Verá únicamente su agenda y podrá cambiar esta contraseña después de
-        ingresar.
+        Verá únicamente su agenda. Después de guardar te mostraremos los datos
+        para copiarlos o preparar el email; el envío no es automático.
       </p>
       <label>
         Email
@@ -1484,6 +1505,9 @@ function StaffAccessForm({
       <button className="button button-primary button-small" type="submit">
         Guardar acceso
       </button>
+      <a className="staff-login-link" href="/admin" target="_blank">
+        Abrir página de ingreso ↗
+      </a>
       {onRevoke && (
         <button
           className="staff-revoke-action"
