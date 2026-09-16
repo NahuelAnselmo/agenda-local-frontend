@@ -186,6 +186,11 @@ button { color: inherit; }
 .success-secondary { min-height: 40px; margin-top: 8px; padding: 0; background: transparent; color: var(--muted); box-shadow: none; }
 
 .booking-detail-page { min-height: 100vh; padding: 35px 24px 70px; background: #e7e3d8; }
+.public-error-page { min-height: 100vh; padding: 30px; display: grid; place-items: center; background: var(--paper); }
+.public-error-page section { width: min(100%, 560px); padding: clamp(32px, 6vw, 64px); border: 1px solid var(--line); border-radius: 12px; background: var(--white); box-shadow: var(--shadow); text-align: center; }
+.public-error-page section > span { width: 52px; height: 52px; margin: 0 auto 24px; display: grid; place-items: center; border-radius: 50%; background: #f1dcd7; color: #904b3c; font-size: 24px; font-weight: 900; }
+.public-error-page h1 { margin: 0; font-family: var(--font-cormorant); font-size: clamp(38px, 7vw, 58px); line-height: 1; }
+.public-error-page section > p:not(.eyebrow) { margin: 20px auto 28px; color: var(--muted); line-height: 1.7; }
 .booking-detail-page > .brand { max-width: 760px; margin: 0 auto 30px; display: flex; }
 .booking-detail-card { max-width: 760px; margin: 0 auto; padding: 55px; border-radius: 12px; background: var(--white); box-shadow: var(--shadow); }
 .booking-detail-intro { padding-bottom: 35px; text-align: center; }

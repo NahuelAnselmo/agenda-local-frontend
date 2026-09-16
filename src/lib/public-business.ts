@@ -48,6 +48,10 @@ const fallback: PublicBusinessData = {
   professionals: demoProfessionals,
 };
 
+const demoMode =
+  process.env.DEMO_MODE === "true" ||
+  process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 export async function getPublicBusiness(): Promise<PublicBusinessData> {
   const baseUrl =
     process.env.API_URL ??
@@ -58,7 +62,10 @@ export async function getPublicBusiness(): Promise<PublicBusinessData> {
     const response = await fetch(baseUrl + "/businesses/norte-studio", {
       cache: "no-store",
     });
-    if (!response.ok) return fallback;
+    if (!response.ok) {
+      if (demoMode) return fallback;
+      throw new Error(`La API respondió con estado ${response.status}`);
+    }
 
     const payload = (await response.json()) as { data: ApiBusiness };
     const data = payload.data;
@@ -91,7 +98,8 @@ export async function getPublicBusiness(): Promise<PublicBusinessData> {
         serviceIds: member.serviceIds,
       })),
     };
-  } catch {
-    return fallback;
+  } catch (error) {
+    if (demoMode) return fallback;
+    throw error;
   }
 }

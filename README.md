@@ -29,6 +29,9 @@ demo usa la marca ficticia **Norte Studio** y consume una API independiente.
 
 La variable `NEXT_PUBLIC_API_URL` define la URL pública de la API. Para el
 renderizado del servidor también puede configurarse `API_URL`.
+`NEXT_PUBLIC_DEMO_MODE=true` habilita los datos de respaldo y precarga las
+credenciales ficticias. Esta variable debe omitirse o establecerse en `false`
+en producción.
 
 ## Acceso de demostración
 

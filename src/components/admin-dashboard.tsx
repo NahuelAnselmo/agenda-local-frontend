@@ -19,6 +19,8 @@ import type {
 } from "./admin/types";
 import { apiRequest } from "../lib/api";
 
+const demoMode = process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+
 const navItems: { id: View; label: string; icon: string }[] = [
   { id: "overview", label: "Resumen", icon: "⌂" },
   { id: "appointments", label: "Agenda", icon: "□" },
@@ -609,7 +611,7 @@ export function AdminDashboard() {
               <input
                 name="email"
                 type="email"
-                defaultValue="admin@nortestudio.demo"
+                defaultValue={demoMode ? "admin@nortestudio.demo" : undefined}
                 autoComplete="email"
                 required
               />
@@ -619,7 +621,7 @@ export function AdminDashboard() {
               <input
                 name="password"
                 type="password"
-                defaultValue="Demo1234!"
+                defaultValue={demoMode ? "Demo1234!" : undefined}
                 autoComplete="current-password"
                 required
               />
@@ -628,9 +630,11 @@ export function AdminDashboard() {
               Ingresar al panel
             </button>
             {message && <p className="form-error" role="alert">{message}</p>}
-            <small className="demo-hint">
-              Las credenciales demo ya están cargadas para facilitar la revisión.
-            </small>
+            {demoMode && (
+              <small className="demo-hint">
+                Las credenciales demo ya están cargadas para facilitar la revisión.
+              </small>
+            )}
           </form>
         </section>
       </main>
