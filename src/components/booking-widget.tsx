@@ -1,10 +1,9 @@
 "use client";
 
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   formatPrice,
-  timeSlots,
   type Business,
   type Professional,
   type Service,
@@ -71,12 +70,16 @@ export function BookingWidget({
     useState<Professional | null>(null);
   const [selectedDay, setSelectedDay] = useState(days[1]);
   const [selectedTime, setSelectedTime] = useState("10:30");
-  const [availableTimes, setAvailableTimes] = useState(timeSlots);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   const [loadingTimes, setLoadingTimes] = useState(false);
+  const [availabilityError, setAvailabilityError] = useState("");
   const [status, setStatus] = useState<Status>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
   const [confirmationToken, setConfirmationToken] = useState("");
   const [confirmationStaffName, setConfirmationStaffName] = useState("");
   const [customerName, setCustomerName] = useState("");
+  const availabilityRequest = useRef(0);
+  const bookingRequestId = useRef<string | null>(null);
 
   const currentStep = stepOrder.indexOf(step);
   const availableProfessionals = professionalOptions.filter((professional) =>
@@ -99,7 +102,10 @@ export function BookingWidget({
     professional: Professional | null,
     day: DayOption,
   ) {
+    const requestId = availabilityRequest.current + 1;
+    availabilityRequest.current = requestId;
     setLoadingTimes(true);
+    setAvailabilityError("");
     const apiUrl =
       process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
     const query = new URLSearchParams({
@@ -120,14 +126,20 @@ export function BookingWidget({
       const payload = (await response.json()) as {
         data: { slots: string[] };
       };
+      if (availabilityRequest.current !== requestId) return;
       setAvailableTimes(payload.data.slots);
       if (!payload.data.slots.includes(selectedTime)) {
         setSelectedTime(payload.data.slots[0] ?? "");
       }
     } catch {
-      setAvailableTimes(timeSlots);
+      if (availabilityRequest.current !== requestId) return;
+      setAvailableTimes([]);
+      setSelectedTime("");
+      setAvailabilityError(
+        "No pudimos consultar la agenda. Reintentá antes de elegir un horario.",
+      );
     } finally {
-      setLoadingTimes(false);
+      if (availabilityRequest.current === requestId) setLoadingTimes(false);
     }
   }
 
@@ -139,10 +151,13 @@ export function BookingWidget({
   async function submitBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setStatus("submitting");
+    setErrorMessage("");
 
     const formData = new FormData(event.currentTarget);
     const apiUrl =
       process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+    const clientRequestId = bookingRequestId.current ?? crypto.randomUUID();
+    bookingRequestId.current = clientRequestId;
 
     try {
       const response = await fetch(
@@ -151,6 +166,7 @@ export function BookingWidget({
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            clientRequestId,
             serviceId: selectedService.id,
             staffId: selectedProfessional?.id ?? null,
             date: selectedDay.value,
@@ -164,7 +180,15 @@ export function BookingWidget({
         },
       );
 
-      if (!response.ok) throw new Error("No se pudo crear la reserva");
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        if (response.status === 409) {
+          void loadAvailability(selectedProfessional, selectedDay);
+        }
+        throw new Error(body?.error ?? "No se pudo crear la reserva");
+      }
       const payload = (await response.json()) as {
         data: { cancelToken: string; staff: { displayName: string } };
       };
@@ -172,7 +196,12 @@ export function BookingWidget({
       setConfirmationStaffName(payload.data.staff.displayName);
       setCustomerName(String(formData.get("name") ?? ""));
       setStatus("success");
-    } catch {
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "No pudimos confirmar la reserva. Intentá nuevamente.",
+      );
       setStatus("error");
     }
   }
@@ -225,7 +254,9 @@ export function BookingWidget({
           className="button success-secondary"
           type="button"
           onClick={() => {
+            bookingRequestId.current = null;
             setStatus("idle");
+            setErrorMessage("");
             setStep("service");
           }}
         >
@@ -357,7 +388,18 @@ export function BookingWidget({
           </div>
           <div className="time-grid" aria-label="Horarios disponibles">
             {loadingTimes && <span className="time-loading">Buscando…</span>}
-            {!loadingTimes && availableTimes.length === 0 && (
+            {!loadingTimes && availabilityError && (
+              <div className="availability-error" role="alert">
+                <span>{availabilityError}</span>
+                <button
+                  type="button"
+                  onClick={() => void loadAvailability(selectedProfessional, selectedDay)}
+                >
+                  Reintentar
+                </button>
+              </div>
+            )}
+            {!loadingTimes && !availabilityError && availableTimes.length === 0 && (
               <span className="time-empty">No hay horarios para este día.</span>
             )}
             {!loadingTimes && availableTimes.map((time) => (
@@ -423,8 +465,7 @@ export function BookingWidget({
               </button>
               {status === "error" && (
                 <p className="form-error" role="alert">
-                  No pudimos conectar con el servidor. Verificá que el backend esté
-                  activo e intentá nuevamente.
+                  {errorMessage}
                 </p>
               )}
             </form>
