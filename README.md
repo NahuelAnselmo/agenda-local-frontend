@@ -30,8 +30,8 @@ demo usa la marca ficticia **Norte Studio** y consume una API independiente.
 La variable `NEXT_PUBLIC_API_URL` define la URL pública de la API. Para el
 renderizado del servidor también puede configurarse `API_URL`.
 `NEXT_PUBLIC_DEMO_MODE=true` habilita los datos de respaldo y precarga las
-credenciales ficticias. Esta variable debe omitirse o establecerse en `false`
-en producción.
+credenciales ficticias. La demo pública utiliza este modo; una instalación real
+debe omitirlo o establecerlo en `false`.
 
 ## Acceso de demostración
 
@@ -39,6 +39,10 @@ El panel está disponible en `/admin`.
 
 - Email: `admin@nortestudio.demo`
 - Contraseña: `Demo1234!`
+
+En la demo pública se pueden probar reservas, agenda, servicios, profesionales,
+horarios y bloqueos. Las credenciales y los envíos de email están protegidos, y
+la API restaura automáticamente los datos ficticios una vez por día.
 
 ## Accesos del equipo
 
@@ -61,3 +65,9 @@ conserva sus turnos anteriores. El registro puede restaurarse si se reincorpora.
 
 Los datos de respaldo viven en `src/data/demo-business.ts`. Cuando la API está
 disponible, el sitio usa la información editable del negocio.
+
+## Despliegue
+
+En Vercel se configuran `NEXT_PUBLIC_API_URL` y `API_URL` con la URL pública de
+la API, incluyendo `/api/v1`. Para el entorno demostrativo también se define
+`NEXT_PUBLIC_DEMO_MODE=true`.
