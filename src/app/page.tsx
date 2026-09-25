@@ -22,7 +22,7 @@ export default async function Home() {
           <a href="#servicios">Servicios</a>
           <a href="#equipo">Equipo</a>
           <a href="#ubicacion">Ubicación</a>
-          <a href="/admin">Administración</a>
+          <a href="/admin">Panel demo</a>
         </nav>
         <a className="button button-small button-dark" href="#reservar">
           Reservar turno
@@ -39,7 +39,7 @@ export default async function Home() {
           </p>
           <div className="hero-actions">
             <a className="button button-primary" href="#reservar">Reservar ahora</a>
-            <a className="text-link" href="#servicios">Ver servicios <span>↘</span></a>
+            <a className="button button-secondary" href="/admin">Probar panel demo</a>
           </div>
           <div className="trust-row">
             <div className="rating-avatars" aria-hidden="true">

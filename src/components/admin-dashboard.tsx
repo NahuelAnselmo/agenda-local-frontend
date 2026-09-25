@@ -632,7 +632,7 @@ export function AdminDashboard() {
             {message && <p className="form-error" role="alert">{message}</p>}
             {demoMode && (
               <small className="demo-hint">
-                Las credenciales demo ya están cargadas para facilitar la revisión.
+                Credenciales precargadas. Los datos ficticios se restauran cada día.
               </small>
             )}
           </form>
@@ -697,6 +697,17 @@ export function AdminDashboard() {
             </div>
           </div>
         </header>
+
+        {demoMode && (
+          <aside className="demo-banner" aria-label="Información de la demostración">
+            <span aria-hidden="true">✦</span>
+            <p>
+              <strong>Estás explorando una demo pública.</strong> Podés probar la
+              operación del negocio. Las credenciales y los envíos reales están
+              protegidos, y los datos se restauran diariamente.
+            </p>
+          </aside>
+        )}
 
         <div className="mobile-admin-nav">
           {visibleNavItems.map((item) => (
@@ -1164,6 +1175,13 @@ export function AdminDashboard() {
                 {data.account.role === "OWNER" ? "Propietario" : "Profesional"}
               </span>
             </div>
+            {demoMode && (
+              <p className="demo-account-notice" role="status">
+                Esta sección está bloqueada en la demo para conservar el acceso de
+                quienes la visiten. En una instalación real, el propietario y cada
+                profesional pueden actualizar sus credenciales.
+              </p>
+            )}
             <form
               className="account-form"
               key={data.account.user.email}
@@ -1175,6 +1193,7 @@ export function AdminDashboard() {
                   name="name"
                   defaultValue={data.account.user.name}
                   autoComplete="name"
+                  disabled={demoMode}
                   required
                 />
               </label>
@@ -1185,6 +1204,7 @@ export function AdminDashboard() {
                   type="email"
                   defaultValue={data.account.user.email}
                   autoComplete="email"
+                  disabled={demoMode}
                   required
                 />
               </label>
@@ -1195,6 +1215,7 @@ export function AdminDashboard() {
                   type="password"
                   autoComplete="current-password"
                   minLength={8}
+                  disabled={demoMode}
                   required
                 />
               </label>
@@ -1205,6 +1226,7 @@ export function AdminDashboard() {
                   type="password"
                   autoComplete="new-password"
                   minLength={8}
+                  disabled={demoMode}
                   placeholder="Dejar vacío para conservarla"
                 />
               </label>
@@ -1215,6 +1237,7 @@ export function AdminDashboard() {
                   type="password"
                   autoComplete="new-password"
                   minLength={8}
+                  disabled={demoMode}
                 />
               </label>
               <div className="account-form-footer">
@@ -1222,7 +1245,11 @@ export function AdminDashboard() {
                   Por seguridad se solicita la contraseña actual para cualquier
                   cambio. Al cambiarla se cierran las demás sesiones abiertas.
                 </p>
-                <button className="button button-primary" type="submit">
+                <button
+                  className="button button-primary"
+                  type="submit"
+                  disabled={demoMode}
+                >
                   Actualizar credenciales
                 </button>
               </div>
