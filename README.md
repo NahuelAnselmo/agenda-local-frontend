@@ -3,6 +3,8 @@
 Aplicación responsive de reservas y gestión para comercios de servicios. La
 demo usa la marca ficticia **Norte Studio** y consume una API independiente.
 
+[Ver demo en vivo](https://agenda-local-web.vercel.app) · [Abrir panel](https://agenda-local-web.vercel.app/admin) · [Repositorio backend](https://github.com/NahuelAnselmo/agenda-local-backend)
+
 ## Funcionalidades
 
 - Reserva pública por servicio, profesional, fecha y horario disponible.
@@ -35,7 +37,7 @@ debe omitirlo o establecerlo en `false`.
 
 ## Acceso de demostración
 
-El panel está disponible en `/admin`.
+El panel público está disponible en [agenda-local-web.vercel.app/admin](https://agenda-local-web.vercel.app/admin).
 
 - Email: `admin@nortestudio.demo`
 - Contraseña: `Demo1234!`
